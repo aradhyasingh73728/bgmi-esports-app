@@ -91,7 +91,7 @@ const Register = () => {
       setOtpSent(true);
 
       setSuccess(
-        `✅ OTP sent to ${cleanEmail}. Email check karo.`
+        `✅ OTP has been sent successfully.`
       );
     } catch (err) {
       setError(
@@ -228,7 +228,7 @@ const Register = () => {
         {!otpSent ? (
           <>
             <h2 className="register-title">
-              BGMI Register
+              Register
             </h2>
 
             <p className="register-subtitle">

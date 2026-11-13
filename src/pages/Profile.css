@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;500;600;700&display=swap');
 
 /* =========================================
@@ -39,7 +38,8 @@
 
   font-family: 'Rajdhani', system-ui, sans-serif;
 
-  isolation: isolate;
+  /* NOTE: isolation: isolate hata diya, kyunki wo avatar modal ko
+     navbar ke neeche daba deta tha */
 }
 
 /* Box sizing */
@@ -63,7 +63,7 @@
 
 .esports-profile .profile-container {
   position: relative;
-  z-index: 2;
+  /* NOTE: z-index hata diya taaki modal poore page ke upar aa sake */
 
   width: 100%;
   max-width: 460px;
@@ -178,8 +178,26 @@
 }
 
 /* =========================================
-   AVATAR
+   AVATAR (clickable container + edit pill)
 ========================================= */
+
+.esports-profile .avatar-container {
+  position: relative;
+
+  display: block;
+  width: fit-content;
+
+  margin: 4px auto 20px;
+
+  cursor: pointer;
+
+  /* overflow visible: ring aur online dot clip nahi honge */
+  overflow: visible;
+
+  border-radius: 50%;
+
+  -webkit-tap-highlight-color: transparent;
+}
 
 .esports-profile .avatar-circle {
   position: relative;
@@ -187,7 +205,7 @@
   width: 100px;
   height: 100px;
 
-  margin: 4px auto 20px;
+  margin: 0;
   padding: 3px;
 
   box-sizing: border-box;
@@ -206,6 +224,12 @@
     0 8px 22px rgba(0, 0, 0, 0.45);
 
   overflow: visible;
+
+  transition: transform 0.2s ease;
+}
+
+.esports-profile .avatar-container:hover .avatar-circle {
+  transform: scale(1.03);
 }
 
 /* Inner ring */
@@ -257,6 +281,48 @@
   border: 3px solid #080808;
 
   box-sizing: border-box;
+}
+
+/* Edit pill: desktop pe hover pe, mobile pe hamesha dikhega */
+
+.esports-profile .edit-overlay {
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+
+  transform: translateX(-50%);
+
+  padding: 3px 10px;
+
+  border-radius: 999px;
+
+  background: rgba(0, 0, 0, 0.88);
+  border: 1px solid rgba(255, 48, 79, 0.55);
+
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+
+  white-space: nowrap;
+
+  opacity: 0;
+  pointer-events: none;
+
+  z-index: 3;
+
+  transition: opacity 0.2s ease;
+}
+
+.esports-profile .avatar-container:hover .edit-overlay {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .esports-profile .edit-overlay {
+    opacity: 1;
+  }
 }
 
 /* =========================================
@@ -479,6 +545,216 @@
 }
 
 /* =========================================
+   AVATAR MODAL
+========================================= */
+
+.esports-profile .avatar-modal {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 16px;
+
+  background: rgba(0, 0, 0, 0.85);
+
+  z-index: 2000;
+}
+
+.esports-profile .modal-content {
+  width: 100%;
+  max-width: 420px;
+
+  max-height: 88vh;
+  max-height: 88dvh;
+
+  padding: 22px 20px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background: #0d0f17;
+  border: 1px solid rgba(255, 48, 79, 0.6);
+  border-radius: 16px;
+
+  color: #ffffff;
+  text-align: center;
+
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.6),
+    0 0 24px rgba(255, 48, 79, 0.08);
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 48, 79, 0.5) transparent;
+}
+
+.esports-profile .modal-content h3 {
+  margin: 0 0 14px;
+
+  font-family: 'Orbitron', system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.esports-profile .modal-content p {
+  margin: 0;
+
+  color: #a6a8b5;
+
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Default avatars grid (12 avatars, 4 per row) */
+
+.esports-profile .default-avatars-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+
+  margin: 14px 0 18px;
+}
+
+.esports-profile .selectable-avatar {
+  display: block;
+
+  width: 100%;
+  aspect-ratio: 1 / 1;
+
+  border-radius: 50%;
+  object-fit: cover;
+
+  background: #151515;
+
+  border: 2px solid transparent;
+
+  cursor: pointer;
+
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.esports-profile .selectable-avatar:hover {
+  transform: scale(1.08);
+  border-color: #ff3038;
+}
+
+/* Currently selected avatar */
+
+.esports-profile .selectable-avatar.active {
+  border-color: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+}
+
+/* Custom upload */
+
+.esports-profile .custom-upload-section {
+  margin-top: 6px;
+  padding-top: 16px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.esports-profile .custom-upload-section input[type="file"] {
+  width: 100%;
+
+  margin-top: 10px;
+
+  color: #a6a8b5;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.esports-profile .custom-upload-section input[type="file"]::file-selector-button {
+  margin-right: 10px;
+  padding: 7px 12px;
+
+  background: rgba(255, 48, 79, 0.12);
+  color: #ffffff;
+
+  border: 1px solid rgba(255, 48, 79, 0.45);
+  border-radius: 6px;
+
+  font-family: inherit;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.esports-profile .upload-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 14px;
+
+  margin-top: 14px;
+}
+
+.esports-profile .upload-preview img {
+  width: 64px;
+  height: 64px;
+
+  border-radius: 50%;
+  object-fit: cover;
+
+  border: 2px solid #ff3038;
+}
+
+.esports-profile .upload-confirm-btn {
+  padding: 9px 16px;
+
+  background: #ff3038;
+  color: #ffffff;
+
+  border: none;
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.esports-profile .upload-confirm-btn:hover {
+  background: #e02029;
+  transform: translateY(-1px);
+}
+
+.esports-profile .close-modal-btn {
+  width: 100%;
+
+  margin-top: 18px;
+  padding: 10px 12px;
+
+  background: transparent;
+  color: #a6a8b5;
+
+  border: 1px solid #4a4c58;
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.esports-profile .close-modal-btn:hover {
+  color: #ffffff;
+  border-color: #a6a8b5;
+}
+
+/* =========================================
    LOADING
 ========================================= */
 
@@ -575,11 +851,13 @@
     border-radius: 16px;
   }
 
+  .esports-profile .avatar-container {
+    margin-bottom: 18px;
+  }
+
   .esports-profile .avatar-circle {
     width: 88px;
     height: 88px;
-
-    margin-bottom: 18px;
   }
 
   .esports-profile .gamer-name {
@@ -605,6 +883,10 @@
     padding: 13px 15px;
 
     font-size: 13px;
+  }
+
+  .esports-profile .modal-content {
+    padding: 18px 16px;
   }
 }
 
@@ -645,6 +927,10 @@
   .esports-profile .id-row strong {
     font-size: 12px;
   }
+
+  .esports-profile .default-avatars-grid {
+    gap: 9px;
+  }
 }
 
 /* =========================================
@@ -654,7 +940,11 @@
 @media (prefers-reduced-motion: reduce) {
 
   .esports-profile .bank-btn,
-  .esports-profile .bank-btn::before {
+  .esports-profile .bank-btn::before,
+  .esports-profile .avatar-circle,
+  .esports-profile .edit-overlay,
+  .esports-profile .selectable-avatar,
+  .esports-profile .upload-confirm-btn {
     transition: none;
   }
 }

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./DepositQR.css";
@@ -11,10 +12,6 @@ const DEPOSIT_API =
     : "https://deposit-and-join-tournament-server.onrender.com";
 
 /* ============================= ALLOWED AMOUNTS ============================= */
-/*
-  Frontend validation only.
-  Real validation backend par bhi ho rahi hai.
-*/
 
 const ALLOWED_DEPOSIT_AMOUNTS = [
   50,
@@ -33,7 +30,6 @@ export default function DepositQR() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // 🔥 GLOBAL LOADER
   const { setLoading: setGlobalLoading } = useLoading();
 
   /* ============================= STATE ============================= */
@@ -41,339 +37,152 @@ export default function DepositQR() {
   const [amount, setAmount] = useState(0);
   const [profileId, setProfileId] = useState("");
   const [utr, setUtr] = useState("");
-
-  // 🔹 Local loading for button state
   const [loading, setLoading] = useState(false);
-
   const [success, setSuccess] = useState(false);
 
   /* ============================= LOAD PAGE DATA ============================= */
 
   useEffect(() => {
-    /* -------------------------------------------------------------
-       GET SELECTED AMOUNT
-       ------------------------------------------------------------- */
-
-    const selectedAmount = Number(
-      location.state?.amount
-    );
-
-    /*
-      Agar user directly /deposit/qr open kare
-      ya invalid amount aaye to deposit page par bhej denge.
-    */
+    const selectedAmount = Number(location.state?.amount);
 
     if (
       !Number.isInteger(selectedAmount) ||
-      !ALLOWED_DEPOSIT_AMOUNTS.includes(
-        selectedAmount
-      )
+      !ALLOWED_DEPOSIT_AMOUNTS.includes(selectedAmount)
     ) {
-      navigate("/deposit", {
-        replace: true,
-      });
-
+      navigate("/deposit", { replace: true });
       return;
     }
 
     setAmount(selectedAmount);
 
-    /* -------------------------------------------------------------
-       GET LOGGED-IN USER
-       ------------------------------------------------------------- */
-
     try {
-      const storedUser =
-        localStorage.getItem(
-          "bgmi_user"
-        );
+      const storedUser = localStorage.getItem("bgmi_user");
 
       if (!storedUser) {
-        alert(
-          "Please login first"
-        );
-
-        navigate("/login", {
-          replace: true,
-        });
-
+        alert("Please login first");
+        navigate("/login", { replace: true });
         return;
       }
 
-      const parsedUser =
-        JSON.parse(storedUser);
-
-      /*
-        Current structure:
-        parsedUser.profile_id
-
-        Compatibility:
-        parsedUser.user.profile_id
-      */
+      const parsedUser = JSON.parse(storedUser);
 
       const realProfileId =
         parsedUser?.profile_id ||
         parsedUser?.user?.profile_id;
 
       if (!realProfileId) {
-        alert(
-          "User session is invalid. Please login again."
-        );
+        alert("User session is invalid. Please login again.");
 
-        localStorage.removeItem(
-          "bgmi_user"
-        );
+        localStorage.removeItem("bgmi_user");
 
-        navigate("/login", {
-          replace: true,
-        });
-
+        navigate("/login", { replace: true });
         return;
       }
 
-      setProfileId(
-        String(
-          realProfileId
-        ).trim()
-      );
+      setProfileId(String(realProfileId).trim());
 
-      console.log(
-        "👤 Deposit profile:",
-        realProfileId
-      );
+      console.log("👤 Deposit profile:", realProfileId);
 
     } catch (error) {
-      console.error(
-        "❌ SESSION PARSE ERROR:",
-        error
-      );
+      console.error("❌ SESSION PARSE ERROR:", error);
 
-      localStorage.removeItem(
-        "bgmi_user"
-      );
+      localStorage.removeItem("bgmi_user");
 
-      navigate("/login", {
-        replace: true,
-      });
+      navigate("/login", { replace: true });
     }
-  }, [
-    location.state,
-    navigate,
-  ]);
+  }, [location.state, navigate]);
 
   /* ============================= UTR VALIDATION ============================= */
 
-  const isValidUtr =
-    /^\d{12}$/.test(
-      utr
-    );
+  const isValidUtr = /^\d{12}$/.test(utr);
 
   /* ============================= SUBMIT DEPOSIT ============================= */
 
   const handleSubmit = async () => {
-    /* -------------------------------------------------------------
-       PROFILE VALIDATION
-       ------------------------------------------------------------- */
-
     if (!profileId) {
-      alert(
-        "Invalid user session. Please login again."
-      );
+      alert("Invalid user session. Please login again.");
 
-      localStorage.removeItem(
-        "bgmi_user"
-      );
+      localStorage.removeItem("bgmi_user");
 
       navigate("/login");
-
       return;
     }
-
-    /* -------------------------------------------------------------
-       AMOUNT VALIDATION
-       ------------------------------------------------------------- */
 
     if (
       !Number.isInteger(amount) ||
-      !ALLOWED_DEPOSIT_AMOUNTS.includes(
-        amount
-      )
+      !ALLOWED_DEPOSIT_AMOUNTS.includes(amount)
     ) {
-      alert(
-        "Invalid deposit amount."
-      );
-
+      alert("Invalid deposit amount.");
       navigate("/deposit");
-
       return;
     }
 
-    /* -------------------------------------------------------------
-       UTR VALIDATION
-       ------------------------------------------------------------- */
+    const cleanUtr = utr.trim();
 
-    const cleanUtr =
-      utr.trim();
-
-    if (
-      !/^\d{12}$/.test(
-        cleanUtr
-      )
-    ) {
-      alert(
-        "Enter valid 12 digit UTR"
-      );
-
+    if (!/^\d{12}$/.test(cleanUtr)) {
+      alert("Enter valid 12 digit UTR");
       return;
     }
 
-    /* -------------------------------------------------------------
-       PREVENT DOUBLE CLICK
-       ------------------------------------------------------------- */
-
-    if (loading) {
-      return;
-    }
+    if (loading) return;
 
     setLoading(true);
-
-    // 🔥 GLOBAL LOADER START
     setGlobalLoading(true);
 
     try {
-      /* ============================================================
-         ONLY TRUSTED FIELDS FROM FRONTEND
-         ============================================================ */
-
       const payload = {
-        profileId:
-          profileId,
-
-        amount:
-          amount,
-
-        utr:
-          cleanUtr,
+        profileId,
+        amount,
+        utr: cleanUtr,
       };
 
-      console.log(
-        "📤 DEPOSIT REQUEST:",
-        {
-          profileId:
-            profileId,
+      console.log("📤 DEPOSIT REQUEST:", {
+        profileId,
+        amount,
+        utr: "********" + cleanUtr.slice(-4),
+      });
 
-          amount:
-            amount,
-
-          utr:
-            "********" +
-            cleanUtr.slice(-4),
-        }
-      );
-
-      /* -------------------------------------------------------------
-         API REQUEST
-         ------------------------------------------------------------- */
-
-      const response =
-        await fetch(
-          `${DEPOSIT_API}/api/deposit`,
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body:
-              JSON.stringify(
-                payload
-              ),
-          }
-        );
-
-      /* -------------------------------------------------------------
-         RESPONSE PARSE
-         ------------------------------------------------------------- */
+      const response = await fetch(`${DEPOSIT_API}/api/deposit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
       let data = null;
 
       try {
-        data =
-          await response.json();
+        data = await response.json();
       } catch (jsonError) {
-        console.error(
-          "❌ INVALID SERVER RESPONSE:",
-          jsonError
-        );
-
-        throw new Error(
-          "Invalid server response"
-        );
+        console.error("❌ INVALID SERVER RESPONSE:", jsonError);
+        throw new Error("Invalid server response");
       }
 
-      console.log(
-        "📥 DEPOSIT RESPONSE:",
-        data
-      );
+      console.log("📥 DEPOSIT RESPONSE:", data);
 
-      /* -------------------------------------------------------------
-         SERVER VALIDATION
-         ------------------------------------------------------------- */
-
-      if (
-        !response.ok ||
-        data?.success !== true
-      ) {
-        throw new Error(
-          data?.message ||
-            "Deposit request failed"
-        );
+      if (!response.ok || data?.success !== true) {
+        throw new Error(data?.message || "Deposit request failed");
       }
-
-      /* -------------------------------------------------------------
-         SUCCESS
-         ------------------------------------------------------------- */
 
       setSuccess(true);
-
-      /*
-        Success screen show karne ke baad
-        global loader hata do.
-      */
-
       setGlobalLoading(false);
 
-      /*
-        History page par bhejne se pehle
-        short success message show hoga.
-      */
-
       setTimeout(() => {
-        navigate(
-          "/deposit-history",
-          {
-            replace: true,
-          }
-        );
+        navigate("/deposit-history", {
+          replace: true,
+        });
       }, 2000);
 
     } catch (error) {
-      console.error(
-        "❌ DEPOSIT ERROR:",
-        error
-      );
+      console.error("❌ DEPOSIT ERROR:", error);
 
       alert(
-        error?.message ||
-          "Deposit failed. Please try again."
+        error?.message || "Deposit failed. Please try again."
       );
 
     } finally {
       setLoading(false);
-
-      // 🔥 GLOBAL LOADER STOP
       setGlobalLoading(false);
     }
   };
@@ -383,21 +192,13 @@ export default function DepositQR() {
   if (success) {
     return (
       <div className="qr-success">
-        <div className="success-icon">
-          ✅
-        </div>
+        <div className="success-icon">✅</div>
 
-        <h2>
-          Deposit Request Created
-        </h2>
+        <h2>Deposit Request Created</h2>
 
-        <p>
-          ₹{amount} — Pending approval
-        </p>
+        <p>₹{amount} — Pending approval</p>
 
-        <p>
-          UTR: {utr}
-        </p>
+        <p>UTR: {utr}</p>
       </div>
     );
   }
@@ -406,6 +207,7 @@ export default function DepositQR() {
 
   return (
     <div className="qr-page">
+
       {/* ============================= TITLE ============================= */}
 
       <h2 className="qr-title">
@@ -413,12 +215,35 @@ export default function DepositQR() {
       </h2>
 
       <p className="qr-subtitle">
-        Enter UTR after UPI payment
+        Scan QR code and complete your UPI payment
       </p>
+
+      {/* ============================= PAYMENT QR ============================= */}
+
+      <div className="qr-image-section">
+
+        <div className="qr-image-wrapper">
+          <img
+            src="/qr.png"
+            alt="UPI Payment QR Code"
+            className="payment-qr-image"
+          />
+        </div>
+
+        <p className="qr-payment-text">
+          Scan QR Code to Pay ₹{amount}
+        </p>
+
+        <span className="qr-payment-note">
+          Complete payment before submitting UTR
+        </span>
+
+      </div>
 
       {/* ============================= UTR ============================= */}
 
       <div className="utr-section">
+
         <label htmlFor="utr-input">
           Enter UTR (12 digits)
         </label>
@@ -432,31 +257,33 @@ export default function DepositQR() {
           autoComplete="off"
           placeholder="123456789012"
           onChange={(e) => {
-            const value =
-              e.target.value
-                .replace(/\D/g, "")
-                .slice(0, 12);
+            const value = e.target.value
+              .replace(/\D/g, "")
+              .slice(0, 12);
 
             setUtr(value);
           }}
           disabled={loading}
         />
 
-        {/* ============================= UTR STATUS ============================= */}
+        {utr.length > 0 && utr.length < 12 && (
+          <p className="utr-hint">
+            Enter all 12 digits
+          </p>
+        )}
 
-        {utr.length > 0 &&
-          utr.length < 12 && (
-            <p className="utr-hint">
-              Enter all 12 digits
-            </p>
-          )}
+        {utr.length === 12 && !isValidUtr && (
+          <p className="utr-hint">
+            Invalid UTR
+          </p>
+        )}
 
-        {utr.length === 12 &&
-          !isValidUtr && (
-            <p className="utr-hint">
-              Invalid UTR
-            </p>
-          )}
+        {isValidUtr && (
+          <p className="utr-success">
+            ✓ UTR format is valid
+          </p>
+        )}
+
       </div>
 
       {/* ============================= SUBMIT ============================= */}
@@ -468,18 +295,17 @@ export default function DepositQR() {
           loading ||
           !profileId ||
           !isValidUtr ||
-          !ALLOWED_DEPOSIT_AMOUNTS.includes(
-            amount
-          )
+          !ALLOWED_DEPOSIT_AMOUNTS.includes(amount)
         }
-        onClick={
-          handleSubmit
-        }
+        onClick={handleSubmit}
       >
-        {loading
-          ? "Processing..."
-          : "Confirm & Submit"}
+        {loading ? "Processing..." : "Confirm & Submit"}
       </button>
+
+      <p className="qr-security-note">
+        Your deposit request will be submitted for admin verification.
+      </p>
+
     </div>
   );
 }

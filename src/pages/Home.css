@@ -1,0 +1,152 @@
+
+/* =====================================================
+   FULL PAGE BGMI ESPORTS BACKGROUND
+   Desktop + Mobile
+===================================================== */
+
+/* Main Home Page */
+
+.page-esports {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  width: 100%;
+  background: transparent !important;
+  overflow: visible;
+}
+
+/* Full Screen Fixed Background */
+
+.page-esports::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+
+  background-image: var(--home-desktop);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+/* =====================================================
+   HERO SECTION
+   Keep Hero Above Tournament Cards
+===================================================== */
+
+.page-esports .hero {
+  position: relative;
+  z-index: 20;
+  overflow: visible;
+
+  background: transparent !important;
+  background-image: none !important;
+}
+
+/* Hero Left & Right */
+
+.page-esports .hero-left {
+  position: relative;
+  z-index: 30;
+  overflow: visible;
+}
+
+.page-esports .hero-right {
+  position: relative;
+  z-index: 2;
+}
+
+/* Hero Actions */
+
+.page-esports .hero-actions {
+  position: relative;
+  z-index: 100;
+  overflow: visible;
+}
+
+/* =====================================================
+   ALL TOURNAMENT DROPDOWN
+===================================================== */
+
+.page-esports .all-tour-wrapper {
+  position: relative;
+  z-index: 999;
+  overflow: visible;
+}
+
+/* Dropdown Menu */
+
+.page-esports .all-tour-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+
+  z-index: 9999;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: visible;
+}
+
+/* Dropdown Items */
+
+.page-esports .all-tour-item {
+  position: relative;
+  z-index: 10000;
+}
+
+/* =====================================================
+   TOURNAMENT SECTION
+   Keep Below Dropdown
+===================================================== */
+
+.page-esports .tournaments-section {
+  position: relative;
+  z-index: 1;
+
+  background: transparent !important;
+  overflow: visible;
+}
+
+/* Tournament Wrapper */
+
+.page-esports .tour-grid-wrapper {
+  position: relative;
+  z-index: 1;
+
+  background: transparent !important;
+  overflow: visible;
+}
+
+/* Tournament Grid */
+
+.page-esports .tour-grid {
+  position: relative;
+  z-index: 1;
+
+  background: transparent !important;
+}
+
+/* Tournament Cards */
+
+.page-esports .tour-grid > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* =====================================================
+   MOBILE BACKGROUND
+===================================================== */
+
+@media screen and (max-width: 768px) {
+
+  .page-esports::before {
+    background-image: var(--home-mobile);
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+  }
+
+}

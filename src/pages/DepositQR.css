@@ -1,248 +1,444 @@
-* {
+
+/* =====================================================
+   DEPOSIT QR PAGE
+   PREMIUM BLACK & RED GAMING THEME
+   QR PAYMENT | MOBILE FIRST | RESPONSIVE
+===================================================== */
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  overflow-x: hidden;
-  background: #05070d;
-  font-family: "Poppins", "Segoe UI", sans-serif;
-}
-
-body {
-  color: #fff;
-}
+/* ================= PAGE ================= */
 
 .qr-page {
-  min-height: 100vh;
+  position: absolute;
+  top: 72px;
+  left: 0;
+  right: 0;
+  bottom: 110px;
+
   width: 100%;
-  padding: 16px 12px 110px; /* bottom nav ke liye extra space */
+  max-width: 480px;
+  margin: 0 auto;
+
+  padding: 18px 12px 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(255, 48, 79, 0.10),
+      transparent 42%
+    ),
+    #080808;
+
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+
+  scrollbar-width: none;
+}
+
+.qr-page::-webkit-scrollbar {
+  display: none;
+}
+
+/* ================= TITLE ================= */
+
+.qr-title {
+  width: 100%;
+  margin: 4px 0 5px;
+
+  color: #ffffff;
+  font-size: 25px;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: 0.5px;
+
+  text-shadow: 0 0 12px rgba(255, 48, 79, 0.35);
+}
+
+.qr-subtitle {
+  width: 100%;
+  margin: 0 0 12px;
+
+  color: #aaa;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* ================= QR SECTION ================= */
+
+.qr-image-section {
+  width: 100%;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background:
-    radial-gradient(circle at top, rgba(255, 40, 40, 0.14), transparent 28%),
-    linear-gradient(180deg, #08101c 0%, #04060b 100%);
+
+  gap: 8px;
+  margin: 8px auto 18px;
 }
 
-.qr-title {
-  margin: 0 0 6px;
-  font-size: clamp(22px, 5vw, 28px);
+/* QR WHITE FRAME */
+
+.qr-image-wrapper {
+  width: 224px;
+  height: 224px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px;
+
+  background: #ffffff;
+
+  border: 2px solid #ff304f;
+  border-radius: 15px;
+
+  box-shadow:
+    0 0 12px rgba(255, 48, 79, 0.25),
+    0 0 28px rgba(255, 48, 79, 0.12);
+}
+
+/* QR IMAGE */
+
+.payment-qr-image {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+  border-radius: 5px;
+}
+
+/* QR TEXT */
+
+.qr-payment-text {
+  margin: 2px 0 0;
+
+  color: #ffffff;
+  font-size: 14px;
   font-weight: 800;
   text-align: center;
-  color: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-.qr-subtitle {
-  margin: 0 0 14px;
-  font-size: 13px;
-  color: #b8c0d9;
-  text-align: center;
-}
-
-.qr-container {
-  width: 100%;
-  max-width: 290px;
-  background: linear-gradient(180deg, #121826 0%, #0a0f18 100%);
-  border: 1px solid rgba(255, 71, 71, 0.20);
-  border-radius: 18px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow:
-    0 10px 24px rgba(0, 0, 0, 0.32),
-    0 0 14px rgba(255, 60, 60, 0.08);
-}
-
-.qr-container::before {
-  align-self: flex-start;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  color: #ff6262;
-  background: rgba(255, 70, 70, 0.08);
-  border: 1px solid rgba(255, 70, 70, 0.18);
-  border-radius: 999px;
-  padding: 5px 10px;
-  margin-bottom: 10px;
-}
-
-.qr-image {
-  width: 100%;
-  max-width: 180px;
-  aspect-ratio: 1 / 1;
-  object-fit: contain;
-  background: #fff;
-  border-radius: 14px;
-  padding: 8px;
-  box-shadow:
-    0 0 0 3px rgba(255, 70, 70, 0.08),
-    0 8px 18px rgba(0, 0, 0, 0.28);
-}
-
-.qr-info {
-  margin-top: 12px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.qr-info::before {
-  content: "Deposit Amount";
-  display: block;
+.qr-payment-note {
+  color: #999;
   font-size: 11px;
-  font-weight: 500;
-  color: #92a0bd;
-  margin-bottom: 3px;
+  text-align: center;
 }
+
+/* ================= UTR SECTION ================= */
 
 .utr-section {
   width: 100%;
-  max-width: 290px;
-  margin-top: 14px;
-  background: rgba(17, 22, 34, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
-  padding: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.20);
+  max-width: 390px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  margin: 0 auto 16px;
 }
 
 .utr-section label {
-  display: block;
-  margin-bottom: 7px;
+  color: #f2f2f2;
   font-size: 13px;
   font-weight: 700;
-  color: #e3e8f8;
 }
 
 .utr-section input {
   width: 100%;
-  height: 44px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 80, 80, 0.35);
-  background: #09101b;
-  color: #ffffff;
-  padding: 0 12px;
-  font-size: 14px;
+  height: 48px;
+
+  padding: 0 14px;
+
   outline: none;
-}
 
-.utr-section input::placeholder {
-  color: #7d88a4;
-}
+  background: #141414;
+  border: 1px solid #383838;
+  border-radius: 9px;
 
-.utr-section input:focus {
-  border-color: #ff4a4a;
-  box-shadow: 0 0 0 3px rgba(255, 74, 74, 0.14);
-}
+  color: #ffffff;
 
-.submit-btn {
-  width: 100%;
-  max-width: 290px;
-  margin-top: 14px;
-  height: 46px;
-  border: none;
-  border-radius: 14px;
-  background: linear-gradient(90deg, #ff3d3d 0%, #ff0055 100%);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  cursor: pointer;
-  box-shadow: 0 10px 20px rgba(255, 0, 85, 0.22);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+
   transition: 0.2s ease;
 }
 
-.submit-btn:hover {
-  transform: translateY(-1px);
+.utr-section input::placeholder {
+  color: #666;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.utr-section input:focus {
+  border-color: #ff304f;
+
+  box-shadow:
+    0 0 0 2px rgba(255, 48, 79, 0.12),
+    0 0 12px rgba(255, 48, 79, 0.10);
+}
+
+.utr-section input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ================= UTR HINT ================= */
+
+.utr-hint {
+  margin: 0;
+
+  color: #ff5368;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.utr-success {
+  margin: 0;
+
+  color: #22c55e;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ================= SUBMIT BUTTON ================= */
+
+.submit-btn {
+  width: 100%;
+  max-width: 390px;
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 2px auto 0;
+  padding: 12px 16px;
+
+  border: 1px solid #ff5368;
+  border-radius: 10px;
+
+  background: linear-gradient(
+    135deg,
+    #ff304f,
+    #c90027
+  );
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 5px 16px rgba(255, 48, 79, 0.20);
+
+  transition: 0.2s ease;
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: linear-gradient(
+    135deg,
+    #ff4964,
+    #e00030
+  );
+
+  box-shadow:
+    0 5px 20px rgba(255, 48, 79, 0.35);
 }
 
 .submit-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.4;
   cursor: not-allowed;
   box-shadow: none;
 }
 
+/* ================= SECURITY NOTE ================= */
+
+.qr-security-note {
+  width: 100%;
+  max-width: 390px;
+
+  margin: 12px auto 5px;
+
+  color: #777;
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* ================= SUCCESS SCREEN ================= */
+
 .qr-success {
-  min-height: 100vh;
-  padding: 20px 14px 100px;
+  position: absolute;
+  top: 72px;
+  left: 0;
+  right: 0;
+  bottom: 110px;
+
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  background: linear-gradient(180deg, #07110b 0%, #030805 100%);
+  justify-content: center;
+
+  padding: 20px;
+
+  overflow-y: auto;
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(34, 197, 94, 0.10),
+      transparent 55%
+    ),
+    #080808;
+
+  color: #ffffff;
   text-align: center;
 }
 
 .success-icon {
-  font-size: 46px;
-  margin-bottom: 10px;
+  width: 75px;
+  height: 75px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 18px;
+
+  border: 2px solid #22c55e;
+  border-radius: 50%;
+
+  background: rgba(34, 197, 94, 0.10);
+
+  font-size: 35px;
+
+  box-shadow:
+    0 0 22px rgba(34, 197, 94, 0.20);
 }
 
 .qr-success h2 {
-  margin: 0 0 8px;
+  margin: 0 0 12px;
+
+  color: #ffffff;
   font-size: 22px;
-  color: #d9ffe9;
+  font-weight: 900;
 }
 
 .qr-success p {
-  margin: 4px 0;
-  font-size: 14px;
-  color: #b8c6be;
+  margin: 5px 0;
+
+  color: #c5c5c5;
+  font-size: 13px;
 }
+
+/* ================= DESKTOP ================= */
+
+@media (min-width: 481px) {
+  .qr-page {
+    top: 0;
+    bottom: 0;
+
+    padding: 82px 16px 120px;
+
+    border-left: 1px solid rgba(255, 255, 255, 0.04);
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .qr-success {
+    top: 0;
+    bottom: 0;
+  }
+}
+
+/* ================= MOBILE ================= */
 
 @media (max-width: 480px) {
   .qr-page {
-    justify-content: flex-start;
-    padding-top: 20px;
-    padding-bottom: 120px;
+    top: 72px;
+    bottom: 110px;
+
+    padding: 15px 10px 20px;
   }
 
   .qr-title {
-    font-size: 20px;
+    font-size: 23px;
   }
 
-  .qr-subtitle {
-    font-size: 12px;
-    margin-bottom: 12px;
+  .qr-image-wrapper {
+    width: 205px;
+    height: 205px;
   }
 
-  .qr-container,
-  .utr-section,
+  .qr-image-section {
+    margin: 7px auto 15px;
+  }
+
+  .utr-section {
+    gap: 7px;
+    margin-bottom: 13px;
+  }
+
+  .utr-section input {
+    height: 46px;
+  }
+
   .submit-btn {
-    max-width: 270px;
-  }
-
-  .qr-image {
-    max-width: 165px;
+    min-height: 46px;
   }
 }
 
+/* ================= SMALL MOBILE ================= */
+
 @media (max-width: 360px) {
-  .qr-container,
-  .utr-section,
-  .submit-btn {
-    max-width: 250px;
+  .qr-page {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
-  .qr-image {
-    max-width: 150px;
+  .qr-title {
+    font-size: 21px;
   }
 
-  .submit-btn,
+  .qr-image-wrapper {
+    width: 185px;
+    height: 185px;
+  }
+
+  .qr-payment-text {
+    font-size: 12px;
+  }
+
   .utr-section input {
-    height: 42px;
+    height: 44px;
+    font-size: 14px;
+  }
+
+  .submit-btn {
     font-size: 13px;
   }
 }

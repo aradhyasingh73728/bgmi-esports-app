@@ -1,13 +1,13 @@
 
 /* =====================================================
-   WITHDRAW PAGE - BGMI RED / BLACK GAMING THEME
-   Live Matches Style | Compact | Responsive
+   WITHDRAW PAGE - FINAL FIXED BGMI ESPORTS THEME
+   Screenshot Size | Bottom Navigation Safe
+   Black / Red | Compact | Fully Scrollable
 ===================================================== */
 
 :root {
   --withdraw-bg: #080808;
   --withdraw-card: #111010;
-  --withdraw-card-2: #191112;
   --withdraw-text: #f5f5f5;
   --withdraw-muted: #a49a9d;
   --withdraw-red: #ff304f;
@@ -18,54 +18,66 @@
 
 /* ================= GLOBAL ================= */
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-/* Avoid changing the global theme of other pages */
 html,
 body {
   margin: 0;
   padding: 0;
 }
 
-/* ================= PAGE BACKGROUND ================= */
+/* ================= PAGE ================= */
 
 .withdraw-container {
-  position: absolute;
+  position: fixed !important;
 
-  top: 72px;
-  left: 0;
-  right: 0;
-  bottom: 110px;
+  /* Header ke neeche */
+  top: 54px !important;
 
-  width: 100%;
+  /* Bottom navigation ke upar */
+  bottom: 78px !important;
 
-  background: #080808 !important;
-  background-color: #080808 !important;
-  background-image: none !important;
+  left: 0 !important;
+  right: 0 !important;
+
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+
+  margin: 0 !important;
+  padding: 12px 9px 25px !important;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(160, 0, 25, 0.13),
+      transparent 42%
+    ),
+    #080808 !important;
 
   color: var(--withdraw-text);
 
-  overflow-y: auto;
-  overflow-x: hidden;
-
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
 
-  padding: 12px 9px 20px;
-  margin: 0;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 
   isolation: isolate;
+  z-index: 1 !important;
 }
 
 .withdraw-container::-webkit-scrollbar {
-  display: none;
+  display: none !important;
 }
 
 /* ================= MAIN CARD ================= */
@@ -73,22 +85,26 @@ body {
 .withdraw-card {
   position: relative;
 
-  width: 100%;
-  max-width: 460px;
+  display: block;
 
-  margin: 0 auto;
+  width: 100% !important;
+  max-width: 460px !important;
 
-  padding: 18px 15px;
+  min-width: 0;
+
+  margin: 0 auto 15px !important;
+
+  padding: 17px 15px 18px !important;
 
   background: linear-gradient(
     150deg,
-    #1b1114,
+    #211215,
     #100d0e
   ) !important;
 
-  border: 1px solid rgba(255, 45, 70, 0.24);
+  border: 1px solid rgba(255, 45, 70, 0.26);
 
-  border-radius: 14px;
+  border-radius: 15px;
 
   box-shadow:
     0 10px 25px rgba(0, 0, 0, 0.45),
@@ -97,7 +113,7 @@ body {
   overflow: hidden;
 }
 
-/* Top red line */
+/* TOP RED LINE */
 
 .withdraw-card::before {
   content: "";
@@ -113,15 +129,18 @@ body {
     90deg,
     transparent,
     #ff304f,
+    #ff7185,
     #a90020,
     transparent
   );
+
+  box-shadow: 0 0 12px #ff304f;
 }
 
 /* ================= HEADING ================= */
 
 .withdraw-card h1 {
-  margin: 0 0 16px;
+  margin: 0 0 13px !important;
 
   text-align: center;
 
@@ -148,7 +167,7 @@ body {
   width: 42px;
   height: 2px;
 
-  margin: 8px auto 0;
+  margin: 7px auto 0;
 
   border-radius: 10px;
 
@@ -157,23 +176,26 @@ body {
     #ff304f,
     #a90020
   );
+
+  box-shadow: 0 0 8px rgba(255, 48, 79, 0.4);
 }
 
 /* ================= BANK STATUS ================= */
 
 .bank-status {
-  display: flex;
+  width: 100%;
+  min-width: 0;
 
+  display: flex;
   align-items: center;
   justify-content: space-between;
 
-  gap: 9px;
+  gap: 8px;
 
-  padding: 10px 12px;
+  padding: 9px 11px;
+  margin: 0 0 12px !important;
 
-  margin-bottom: 13px;
-
-  border-radius: 9px;
+  border-radius: 10px;
 
   background: rgba(16, 185, 129, 0.09) !important;
 
@@ -183,6 +205,7 @@ body {
 
   font-size: 12px;
   font-weight: 800;
+  line-height: 1.4;
 }
 
 .bank-link-btn {
@@ -198,7 +221,7 @@ body {
 
   border: 1px solid rgba(255, 100, 120, 0.25);
 
-  padding: 7px 12px;
+  padding: 7px 11px;
 
   border-radius: 7px;
 
@@ -210,24 +233,34 @@ body {
   transition: 0.2s ease;
 }
 
+.bank-link-btn:hover {
+  filter: brightness(1.15);
+}
+
 .bank-link-btn:active {
   transform: scale(0.96);
 }
 
-/* ================= BALANCE DISPLAY ================= */
+/* ================= BALANCE ================= */
 
 .balance-display {
+  width: 100%;
+
   text-align: center;
 
-  padding: 13px 12px;
+  padding: 11px 10px;
 
-  background: rgba(255, 48, 79, 0.07) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 48, 79, 0.10),
+    rgba(100, 0, 20, 0.08)
+  ) !important;
 
-  border: 1px solid rgba(255, 48, 79, 0.2);
+  border: 1px solid rgba(255, 48, 79, 0.23);
 
-  border-radius: 10px;
+  border-radius: 11px;
 
-  margin-bottom: 16px;
+  margin: 0 0 13px !important;
 
   font-weight: 800;
   font-size: 14px;
@@ -244,19 +277,22 @@ body {
 
   font-size: 22px !important;
   font-weight: 950;
+
+  text-shadow: 0 0 12px rgba(255, 48, 79, 0.18);
 }
 
 /* ================= FORM ================= */
 
-/* Scoped to withdraw card to avoid affecting other pages */
-
 .withdraw-card form {
+  width: 100%;
+  min-width: 0;
+
   display: flex;
   flex-direction: column;
 
-  gap: 12px;
+  gap: 9px;
 
-  margin-bottom: 15px;
+  margin: 0 0 12px !important;
 }
 
 /* ================= AMOUNT INPUT ================= */
@@ -266,12 +302,13 @@ body {
 
   width: 100%;
   min-width: 0;
+  min-height: 45px;
 
-  padding: 14px 13px;
+  padding: 12px 13px;
 
   font-family: inherit;
 
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
 
   border-radius: 9px;
@@ -314,7 +351,9 @@ body {
 /* ================= ERROR ================= */
 
 .error-message {
-  padding: 10px 12px;
+  padding: 9px 11px;
+
+  margin: 0;
 
   background: rgba(255, 48, 79, 0.09) !important;
 
@@ -335,10 +374,12 @@ body {
 .withdraw-submit-btn {
   position: relative;
 
-  width: 100%;
-  min-height: 44px;
+  display: block;
 
-  padding: 12px 15px;
+  width: 100%;
+  min-height: 42px;
+
+  padding: 10px 13px;
 
   border-radius: 9px;
 
@@ -349,7 +390,7 @@ body {
   font-size: 14px;
   font-weight: 950;
 
-  letter-spacing: 0.7px;
+  letter-spacing: 0.6px;
 
   text-transform: uppercase;
 
@@ -399,12 +440,14 @@ body {
 /* ================= HISTORY BUTTON ================= */
 
 .history-btn {
+  display: block;
+
   width: 100%;
-  min-height: 42px;
+  min-height: 40px;
 
-  padding: 11px 15px;
+  padding: 10px 13px;
 
-  margin-bottom: 13px;
+  margin: 0 0 10px !important;
 
   background: #171112 !important;
 
@@ -448,10 +491,10 @@ body {
 
 /* ================= INFO BOX ================= */
 
-/* Preserve the existing inline-style based info box */
-
 .withdraw-card div[style*="e9ecef"] {
-  padding: 11px 12px;
+  padding: 10px 11px;
+
+  margin-top: 9px;
 
   background: #171112 !important;
 
@@ -473,7 +516,7 @@ body {
 /* ================= LOADING ================= */
 
 .withdraw-container[style*="padding: '50px'"] {
-  padding: 50px 20px !important;
+  padding: 30px 20px !important;
 
   display: flex;
 
@@ -486,35 +529,42 @@ body {
   color: #ff657a !important;
 }
 
-/* ================= LAPTOP ================= */
+/* ================= LAPTOP / DESKTOP ================= */
 
 @media (min-width: 481px) {
   .withdraw-container {
-    top: 72px;
-    bottom: 20px;
+    top: 54px !important;
+    bottom: 78px !important;
 
-    max-width: 460px;
+    left: 50% !important;
+    right: auto !important;
 
-    left: 50%;
-    right: auto;
+    width: 100% !important;
+    max-width: 460px !important;
 
-    width: 100%;
+    transform: translateX(-50%) !important;
 
-    transform: translateX(-50%);
+    padding: 12px 14px 25px !important;
 
-    margin: 0;
+    border-left: 1px solid rgba(255, 45, 70, 0.08);
+    border-right: 1px solid rgba(255, 45, 70, 0.08);
 
-    padding: 20px 14px;
-
-    border-radius: 14px;
-
-    background: #080808 !important;
+    background:
+      radial-gradient(
+        circle at 50% 0%,
+        rgba(160, 0, 25, 0.13),
+        transparent 42%
+      ),
+      #080808 !important;
 
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
   }
 
   .withdraw-card {
-    padding: 22px 18px;
+    width: 100% !important;
+    max-width: 100% !important;
+
+    padding: 17px 18px 18px !important;
   }
 }
 
@@ -522,16 +572,25 @@ body {
 
 @media (max-width: 480px) {
   .withdraw-container {
-    top: 72px;
-    bottom: 110px;
+    top: 54px !important;
+    bottom: 78px !important;
 
-    padding: 10px 8px 18px;
+    left: 0 !important;
+    right: 0 !important;
 
-    background: #080808 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+
+    transform: none !important;
+
+    padding: 10px 8px 25px !important;
   }
 
   .withdraw-card {
-    padding: 15px 12px;
+    width: 100% !important;
+    max-width: 100% !important;
+
+    padding: 14px 12px 16px !important;
 
     border-radius: 12px;
   }
@@ -539,25 +598,25 @@ body {
   .withdraw-card h1 {
     font-size: 20px;
 
-    margin-bottom: 13px;
+    margin-bottom: 12px !important;
   }
 
   .bank-status {
-    padding: 9px 10px;
+    padding: 8px 9px;
 
     font-size: 11px;
   }
 
   .bank-link-btn {
-    padding: 7px 10px;
+    padding: 7px 9px;
 
     font-size: 9px;
   }
 
   .balance-display {
-    padding: 11px;
+    padding: 10px;
 
-    margin-bottom: 13px;
+    margin-bottom: 11px !important;
 
     font-size: 13px;
   }
@@ -567,23 +626,25 @@ body {
   }
 
   .amount-input {
-    padding: 13px 11px;
+    min-height: 43px;
 
-    font-size: 17px;
+    padding: 11px;
+
+    font-size: 16px;
   }
 
   .withdraw-submit-btn {
-    min-height: 42px;
+    min-height: 40px;
 
-    padding: 11px;
+    padding: 10px;
 
     font-size: 13px;
   }
 
   .history-btn {
-    min-height: 40px;
+    min-height: 38px;
 
-    padding: 10px;
+    padding: 9px;
 
     font-size: 11px;
   }
@@ -593,11 +654,11 @@ body {
 
 @media (max-width: 360px) {
   .withdraw-container {
-    padding: 8px 6px 16px;
+    padding: 8px 6px 25px !important;
   }
 
   .withdraw-card {
-    padding: 13px 10px;
+    padding: 12px 10px 15px !important;
 
     border-radius: 10px;
   }
@@ -607,7 +668,7 @@ body {
   }
 
   .bank-status {
-    gap: 6px;
+    gap: 5px;
 
     padding: 8px;
 
@@ -615,13 +676,13 @@ body {
   }
 
   .bank-link-btn {
-    padding: 6px 8px;
+    padding: 6px 7px;
 
     font-size: 9px;
   }
 
   .balance-display {
-    padding: 10px;
+    padding: 9px;
 
     font-size: 12px;
   }
@@ -631,14 +692,14 @@ body {
   }
 
   .amount-input {
-    padding: 12px 10px;
+    padding: 10px;
 
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .withdraw-submit-btn,
   .history-btn {
-    padding: 10px;
+    padding: 9px;
 
     font-size: 11px;
   }

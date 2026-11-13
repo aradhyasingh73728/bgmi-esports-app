@@ -1,12 +1,139 @@
 
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import TournamentCard from "../components/TournamentCard";
+import "./Home.css";
+
+import homeDesktop from "../assets/bg/home-desktop.webp";
+import homeMobile from "../assets/bg/home-mobile.webp";
+
+// ==========================================
+// TOURNAMENT API CONFIGURATION
+// ==========================================
 
 const TOURNAMENT_API =
   window.location.hostname === "localhost"
     ? "http://localhost:5005"
     : process.env.REACT_APP_TOURNAMENT_API_URL;
+
+// ==========================================
+// CHECK WHETHER VALUE IS TRUE
+// ==========================================
+
+const isTrue = (value) => {
+  return value === true || value === "true";
+};
+
+// ==========================================
+// FILTER PUBLISHED TOURNAMENTS
+// ==========================================
+
+const filterPublishedTournaments = (tournaments) => {
+  return tournaments.filter((t) => {
+    const published = isTrue(t.published);
+
+    const hidden = isTrue(t.is_hidden);
+
+    const visible = !(
+      t.is_visible === false ||
+      t.is_visible === "false"
+    );
+
+    const status = String(
+      t.tournament_status || t.status || ""
+    )
+      .trim()
+      .toLowerCase();
+
+    return (
+      published &&
+      !hidden &&
+      visible &&
+      status === "upcoming"
+    );
+  });
+};
+
+// ==========================================
+// REMOVE DUPLICATE TOURNAMENTS
+// ==========================================
+
+const deduplicateTournaments = (tournaments) => {
+  const uniqueTournaments = new Map();
+
+  tournaments.forEach((t) => {
+    const name = String(
+      t.tournament_name || t.name || ""
+    )
+      .trim()
+      .toLowerCase();
+
+    const date = String(t.date || "").trim();
+
+    const time = String(t.time || "").trim();
+
+    const gameMode = String(
+      t.game_mode || t.mode || ""
+    )
+      .trim()
+      .toLowerCase();
+
+    const matchType = String(
+      t.match_type || t.type || ""
+    )
+      .trim()
+      .toLowerCase();
+
+    const mapName = String(t.map || "")
+      .trim()
+      .toLowerCase();
+
+    const tournamentId =
+      t.tournament_id || t.id || "";
+
+    const duplicateKey =
+      name && date && time && gameMode && matchType
+        ? [
+            name,
+            date,
+            time,
+            gameMode,
+            matchType,
+            mapName,
+          ].join("|")
+        : `id:${tournamentId}`;
+
+    const existing = uniqueTournaments.get(duplicateKey);
+
+    if (!existing) {
+      uniqueTournaments.set(duplicateKey, t);
+      return;
+    }
+
+    // Prefer the record with more joined players.
+
+    const getJoinedCount = (item) => {
+      if (Array.isArray(item.joinedPlayers)) {
+        return item.joinedPlayers.length;
+      }
+
+      return Number(item.joinedPlayers || 0);
+    };
+
+    const existingCount = getJoinedCount(existing);
+    const newCount = getJoinedCount(t);
+
+    if (newCount > existingCount) {
+      uniqueTournaments.set(duplicateKey, t);
+    }
+  });
+
+  return Array.from(uniqueTournaments.values());
+};
+
+// ==========================================
+// HOME COMPONENT
+// ==========================================
 
 const Home = () => {
   const [featured, setFeatured] = useState([]);
@@ -16,11 +143,23 @@ const Home = () => {
 
   const navigate = useNavigate();
 
+  const activeController = useRef(null);
+
   // ==========================================
-  // FETCH LIVE TOURNAMENTS FROM ADMIN SERVER
+  // FETCH TOURNAMENTS
   // ==========================================
 
-  const fetchTournaments = useCallback(async (signal) => {
+  const fetchTournaments = useCallback(async () => {
+    // Stop previous request if one is running.
+
+    if (activeController.current) {
+      activeController.current.abort();
+    }
+
+    const controller = new AbortController();
+
+    activeController.current = controller;
+
     try {
       setError("");
 
@@ -37,7 +176,7 @@ const Home = () => {
           headers: {
             Accept: "application/json",
           },
-          signal,
+          signal: controller.signal,
         }
       );
 
@@ -51,7 +190,8 @@ const Home = () => {
         );
       }
 
-      // API response handling
+      // Get tournament array from API response.
+
       const tournamentList = Array.isArray(data)
         ? data
         : Array.isArray(data.tournaments)
@@ -60,29 +200,55 @@ const Home = () => {
         ? data.data
         : [];
 
-      setFeatured(tournamentList);
+      // STEP 1: Only published, visible Upcoming tournaments.
+
+      const publishedList =
+        filterPublishedTournaments(tournamentList);
+
+      // STEP 2: Remove duplicate tournaments.
+
+      const uniqueList =
+        deduplicateTournaments(publishedList);
+
+      // STEP 3: Update Home Page.
+
+      if (!controller.signal.aborted) {
+        setFeatured(uniqueList);
+      }
     } catch (err) {
-      if (err.name === "AbortError") return;
+      if (err.name === "AbortError") {
+        return;
+      }
 
-      console.error("HOME TOURNAMENT FETCH ERROR:", err);
-
-      setError(
-        err.message || "Something went wrong while loading tournaments."
+      console.error(
+        "HOME TOURNAMENT FETCH ERROR:",
+        err
       );
+
+      if (!controller.signal.aborted) {
+        setError(
+          err.message ||
+            "Something went wrong while loading tournaments."
+        );
+      }
     } finally {
-      if (!signal?.aborted) {
+      if (!controller.signal.aborted) {
         setLoading(false);
       }
     }
   }, []);
 
-  useEffect(() => {
-    const controller = new AbortController();
+  // ==========================================
+  // INITIAL FETCH
+  // ==========================================
 
-    fetchTournaments(controller.signal);
+  useEffect(() => {
+    fetchTournaments();
 
     return () => {
-      controller.abort();
+      if (activeController.current) {
+        activeController.current.abort();
+      }
     };
   }, [fetchTournaments]);
 
@@ -131,20 +297,35 @@ const Home = () => {
     setLoading(true);
     setError("");
 
-    const controller = new AbortController();
-
-    fetchTournaments(controller.signal);
+    fetchTournaments();
   };
 
+  // ==========================================
+  // RENDER
+  // ==========================================
+
   return (
-    <div className="page-esports">
-      {/* ================= HERO SECTION ================= */}
+    <div
+      className="page-esports"
+      style={{
+        "--home-desktop": `url("${homeDesktop}")`,
+        "--home-mobile": `url("${homeMobile}")`,
+      }}
+    >
+      {/* =====================================
+          HERO SECTION
+      ===================================== */}
 
       <section className="hero">
         <div className="hero-left">
           <h1 className="hero-title">
-            <span className="hero-title-main">BGMI</span>
-            <span className="hero-title-accent">ESPORTS</span>
+            <span className="hero-title-main">
+              BGMI
+            </span>
+
+            <span className="hero-title-accent">
+              ESPORTS
+            </span>
           </h1>
 
           <div className="hero-actions">
@@ -179,7 +360,9 @@ const Home = () => {
                       key={cat}
                       type="button"
                       className="all-tour-item"
-                      onClick={() => handleCategoryClick(cat)}
+                      onClick={() =>
+                        handleCategoryClick(cat)
+                      }
                     >
                       {cat}
                     </button>
@@ -195,7 +378,9 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ================= TOURNAMENT SECTION ================= */}
+      {/* =====================================
+          TOURNAMENT SECTION
+      ===================================== */}
 
       <section className="tournaments-section">
         <div className="tour-grid-wrapper">
@@ -204,7 +389,6 @@ const Home = () => {
           {loading && (
             <div className="home-loading">
               <div className="home-loader" />
-
               <p>Loading tournaments...</p>
             </div>
           )}
@@ -228,29 +412,33 @@ const Home = () => {
 
           {/* EMPTY STATE */}
 
-          {!loading && !error && featured.length === 0 && (
-            <div className="home-empty">
-              <h3>No Tournaments Available</h3>
+          {!loading &&
+            !error &&
+            featured.length === 0 && (
+              <div className="home-empty">
+                <h3>No Tournaments Available</h3>
 
-              <p>
-                New tournaments will appear here once they are
-                published by the admin.
-              </p>
-            </div>
-          )}
+                <p>
+                  New tournaments will appear here once
+                  they are published by the admin.
+                </p>
+              </div>
+            )}
 
           {/* TOURNAMENT CARDS */}
 
-          {!loading && !error && featured.length > 0 && (
-            <div className="tour-grid">
-              {featured.map((t) => (
-                <TournamentCard
-                  key={t.id || t.tournament_id}
-                  t={t}
-                />
-              ))}
-            </div>
-          )}
+          {!loading &&
+            !error &&
+            featured.length > 0 && (
+              <div className="tour-grid">
+                {featured.map((t) => (
+                  <TournamentCard
+                    key={t.tournament_id || t.id}
+                    t={t}
+                  />
+                ))}
+              </div>
+            )}
         </div>
       </section>
     </div>

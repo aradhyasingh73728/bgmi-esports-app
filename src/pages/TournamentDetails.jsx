@@ -114,6 +114,7 @@ const normalizeTournament = (item) => {
     maxSlots: Number(
       item.maxSlots ??
       item.totalSlots ??
+      item.total_slots ??
       item.slots ??
       50
     ),
@@ -121,8 +122,25 @@ const normalizeTournament = (item) => {
     joinedPlayers: Number(
       item.joinedPlayers ??
       item.registered ??
+      item.joined_players ??
       0
     ),
+
+    // Date aliases
+    date:
+      item.date ||
+      item.tournament_date ||
+      item.match_date ||
+      item.scheduled_date ||
+      "",
+
+    // Time aliases
+    time:
+      item.time ||
+      item.tournament_time ||
+      item.match_time ||
+      item.scheduled_time ||
+      "",
 
     image:
       item.image ||
@@ -237,9 +255,6 @@ const TournamentDetails = () => {
       );
     }
 
-    const encodedId = encodeURIComponent(id);
-
-    // Upcoming, Live aur Completed tournaments ke public endpoints.
     const endpoints = [
       `${TOURNAMENT_API}/api/tournaments`,
       `${TOURNAMENT_API}/api/live-tournaments`,
@@ -311,10 +326,7 @@ const TournamentDetails = () => {
     const normalized =
       normalizeTournament(foundTournament);
 
-    if (
-      !normalized ||
-      !normalized.id
-    ) {
+    if (!normalized || !normalized.id) {
       throw new Error(
         "Invalid tournament data received from server."
       );
@@ -424,6 +436,30 @@ const TournamentDetails = () => {
         return;
       }
 
+      // Tournament se date aur time lo
+      const matchDate = String(
+        tournament.date || ""
+      ).trim();
+
+      const matchTime = String(
+        tournament.time || ""
+      ).trim();
+
+      // Date/time missing ho to incomplete API request mat bhejo
+      if (!matchDate || !matchTime) {
+        console.error(
+          "Tournament date/time missing:",
+          {
+            tournamentId: id,
+            date: matchDate,
+            time: matchTime,
+            tournament,
+          }
+        );
+
+        return;
+      }
+
       if (showLoader && isMountedRef.current) {
         setIsInitialLoading(true);
       }
@@ -433,10 +469,16 @@ const TournamentDetails = () => {
            CHECK JOIN STATUS
         ============================================== */
 
+        const joinParams = new URLSearchParams({
+          profileId: profileId,
+          date: matchDate,
+          time: matchTime,
+        });
+
         const joinRes = await fetch(
           `${JOIN_API}/api/check-join/${encodeURIComponent(
             id
-          )}?profileId=${encodeURIComponent(profileId)}`,
+          )}?${joinParams.toString()}`,
           {
             method: "GET",
             cache: "no-store",
@@ -452,13 +494,18 @@ const TournamentDetails = () => {
         }
 
         /* ==============================================
-           CHECK SLOTS
+           CHECK TOURNAMENT SLOTS
         ============================================== */
+
+        const slotsParams = new URLSearchParams({
+          date: matchDate,
+          time: matchTime,
+        });
 
         const slotsRes = await fetch(
           `${JOIN_API}/api/tournament-slots-count/${encodeURIComponent(
             id
-          )}`,
+          )}?${slotsParams.toString()}`,
           {
             method: "GET",
             cache: "no-store",
@@ -473,7 +520,7 @@ const TournamentDetails = () => {
 
         const max = Number(
           slotsData?.max ??
-          tournament?.maxSlots ??
+          tournament.maxSlots ??
           50
         );
 
@@ -492,14 +539,24 @@ const TournamentDetails = () => {
           setMaxSlots(safeMax);
           setIsFull(safeCount >= safeMax);
         }
+
+        console.log(
+          "Tournament status checked:",
+          {
+            tournamentId: id,
+            profileId,
+            date: matchDate,
+            time: matchTime,
+            joined: Boolean(joinData?.joined),
+            registered: safeCount,
+            max: safeMax,
+          }
+        );
       } catch (error) {
         console.error(
           "Tournament status check failed:",
           error
         );
-
-        // Status endpoint failure par user ko galat
-        // joined/full state mat dikhao.
       } finally {
         if (showLoader && isMountedRef.current) {
           setIsInitialLoading(false);
@@ -539,6 +596,7 @@ const TournamentDetails = () => {
 
         if (isMountedRef.current) {
           setTournament(null);
+
           setErrorMsg(
             error?.message ||
             "Tournament load nahi ho paya."
@@ -605,7 +663,7 @@ const TournamentDetails = () => {
 
   /* ============================================================
      BACKGROUND STATUS REFRESH
-     NO GLOBAL LOADER
+     EVERY 10 SECONDS
      ============================================================ */
 
   useEffect(() => {
@@ -768,6 +826,17 @@ const TournamentDetails = () => {
     }
 
     /* ==============================================
+       DATE/TIME CHECK
+    ============================================== */
+
+    if (!tournament.date || !tournament.time) {
+      setErrorMsg(
+        "❌ Tournament date/time missing hai. Please refresh."
+      );
+      return;
+    }
+
+    /* ==============================================
        ENTRY FEE
     ============================================== */
 
@@ -841,12 +910,10 @@ const TournamentDetails = () => {
           "Erangel",
 
         date:
-          tournament.date ||
-          "",
+          tournament.date,
 
         time:
-          tournament.time ||
-          "",
+          tournament.time,
 
         entryFee,
 
@@ -927,12 +994,10 @@ const TournamentDetails = () => {
               "Erangel",
 
             date:
-              tournament.date ||
-              "",
+              tournament.date,
 
             time:
-              tournament.time ||
-              "",
+              tournament.time,
 
             entryFee,
 
