@@ -1,3 +1,4 @@
+
 // 🔥 Wallet.jsx - GLOBAL LOADER + MOBILE SCROLL + SILENT SYNC + BACKBUTTON
 
 import React, {
@@ -27,7 +28,7 @@ const DEPOSIT_API =
 const Wallet = () => {
   const navigate = useNavigate();
 
-  // 🌐 GLOBAL LOADER
+  // GLOBAL LOADER
   const { setLoading } = useLoading();
 
   const [balance, setBalance] = useState(0);
@@ -91,17 +92,14 @@ const Wallet = () => {
             data.balance || 0
           );
 
-          setSupabaseBalance(
-            supaBalance
-          );
+          setSupabaseBalance(supaBalance);
 
           localStorage.setItem(
             "wallet_balance",
             supaBalance.toString()
           );
 
-          lastBalanceRef.current =
-            supaBalance;
+          lastBalanceRef.current = supaBalance;
 
           console.log(
             "💰 SUPABASE:",
@@ -145,9 +143,7 @@ const Wallet = () => {
           res.data?.balance || 0
         );
 
-        setBalance(
-          serverBalance
-        );
+        setBalance(serverBalance);
 
         console.log(
           "💰 SERVER BALANCE:",
@@ -181,15 +177,11 @@ const Wallet = () => {
         );
 
         const myDeposits =
-          Array.isArray(
-            res.data?.deposits
-          )
+          Array.isArray(res.data?.deposits)
             ? res.data.deposits
             : [];
 
-        setDeposits(
-          [...myDeposits].reverse()
-        );
+        setDeposits([...myDeposits].reverse());
 
         console.log(
           "💳 Deposits loaded:",
@@ -206,7 +198,7 @@ const Wallet = () => {
 
   // ==========================================
   // INITIAL LOAD
-  // GLOBAL PNG LOADER
+  // GLOBAL LOADER
   // ==========================================
   useEffect(() => {
     if (!user?.profile_id) {
@@ -218,7 +210,6 @@ const Wallet = () => {
     }
 
     const initialLoad = async () => {
-      // 🔥 GLOBAL LOADER ON
       setLoading(true);
 
       try {
@@ -233,7 +224,6 @@ const Wallet = () => {
           error
         );
       } finally {
-        // 🔥 GLOBAL LOADER OFF
         setIsInitialLoading(false);
         setLoading(false);
       }
@@ -251,7 +241,7 @@ const Wallet = () => {
 
   // ==========================================
   // SILENT BACKGROUND REFRESH
-  // NO GLOBAL LOADER HERE
+  // NO GLOBAL LOADER
   // ==========================================
   useEffect(() => {
     if (
@@ -336,16 +326,6 @@ const Wallet = () => {
   ]);
 
   // ==========================================
-  // MANUAL REFRESH
-  // NO GLOBAL LOADER
-  // ==========================================
-  const refreshWallet = () => {
-    loadSupabaseBalance();
-    loadWalletBalance();
-    loadDeposits();
-  };
-
-  // ==========================================
   // WITHDRAW HISTORY
   // ==========================================
   const goToWithdrawHistory = () => {
@@ -365,9 +345,6 @@ const Wallet = () => {
   // ==========================================
   return (
     <div className="wallet-container">
-
-    
-      
 
       {/* HEADER */}
       <div className="wallet-header">
@@ -439,9 +416,7 @@ const Wallet = () => {
 
             <button
               className="quick-action history-quick"
-              onClick={
-                goToWithdrawHistory
-              }
+              onClick={goToWithdrawHistory}
             >
               📜 Withdraw History
             </button>
@@ -467,15 +442,12 @@ const Wallet = () => {
                 {deposits
                   .filter(
                     (d) =>
-                      d.status ===
-                      "approved"
+                      d.status === "approved"
                   )
                   .reduce(
                     (sum, d) =>
                       sum +
-                      Number(
-                        d.amount || 0
-                      ),
+                      Number(d.amount || 0),
                     0
                   )
                   .toLocaleString()}
@@ -498,8 +470,7 @@ const Wallet = () => {
                 {
                   deposits.filter(
                     (d) =>
-                      d.status ===
-                      "pending"
+                      d.status === "pending"
                   ).length
                 }
               </strong>
@@ -521,8 +492,7 @@ const Wallet = () => {
                 {
                   deposits.filter(
                     (d) =>
-                      d.status ===
-                      "approved"
+                      d.status === "approved"
                   ).length
                 }
               </strong>
