@@ -60,7 +60,6 @@ const Navbar = ({ variant = "bottom-tabs" }) => {
     return (
       <div className="nav-top-menu">
 
-        {/* NOTIFICATION + HAMBURGER IN ONE ROW */}
         <div className="top-menu-actions">
 
           {/* NOTIFICATION BELL */}
@@ -109,6 +108,15 @@ const Navbar = ({ variant = "bottom-tabs" }) => {
                 >
                   <span className="menu-item-icon">◈</span>
                   <span>Wallet</span>
+                </button>
+
+                {/* MY WINNING HISTORY */}
+                <button
+                  type="button"
+                  onClick={() => goTo("/winning-history")}
+                >
+                  <span className="menu-item-icon">🏆</span>
+                  <span>My Winning History</span>
                 </button>
 
                 {/* DEPOSIT HISTORY */}

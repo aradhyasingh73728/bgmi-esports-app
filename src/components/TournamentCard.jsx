@@ -81,7 +81,36 @@ const TournamentCard = ({ t }) => {
   // MAP BACKGROUND
   // ==========================================
 
-  const getTournamentBackground = (id, map) => {
+  const getTournamentBackground = (id, map, type) => {
+    const normalizedMap = String(map || "")
+      .trim()
+      .toLowerCase();
+
+    const normalizedType = String(type || "")
+      .trim()
+      .toLowerCase();
+
+    // ======================================
+    // TDM BACKGROUNDS
+    // ======================================
+
+    if (normalizedType === "tdm") {
+      const tdmBackgrounds = {
+        warehouse: "/assets/tournaments/warehouse.webp",
+        hangar: "/assets/tournaments/hangar.webp",
+        ruins: "/assets/tournaments/ruins.webp",
+        library: "/assets/tournaments/library.webp",
+        santorini: "/assets/tournaments/santorini.webp",
+        town: "/assets/tournaments/town.webp",
+      };
+
+      return tdmBackgrounds[normalizedMap] || "";
+    }
+
+    // ======================================
+    // CLASSIC BACKGROUNDS
+    // ======================================
+
     const backgrounds = {
       GYJHYTU: "/assets/tournaments/livik.webp",
       CVGFDC5: "/assets/tournaments/livik.webp",
@@ -94,8 +123,6 @@ const TournamentCard = ({ t }) => {
       return backgrounds[id];
     }
 
-    const normalizedMap = String(map || "").toLowerCase();
-
     if (normalizedMap.includes("livik")) {
       return "/assets/tournaments/livik.webp";
     }
@@ -106,6 +133,14 @@ const TournamentCard = ({ t }) => {
 
     if (normalizedMap.includes("miramar")) {
       return "/assets/tournaments/Miramar.webp";
+    }
+
+    if (normalizedMap.includes("sanhok")) {
+      return "/assets/tournaments/sanhok.webp";
+    }
+
+    if (normalizedMap.includes("vikendi")) {
+      return "/assets/tournaments/vikendi.webp";
     }
 
     return "";
@@ -285,7 +320,8 @@ const TournamentCard = ({ t }) => {
 
   const mapBackground = getTournamentBackground(
     tournamentId,
-    t?.map
+    t?.map,
+    tournamentType
   );
 
   // ==========================================

@@ -1,15 +1,11 @@
 import React, { useState } from "react";
 import "./Register.css";
 
-const isLocalhost =
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1" ||
-  window.location.hostname === "[::1]";
+// ==========================================
+// LIVE BACK4APP API
+// ==========================================
 
-const API_URL = isLocalhost
-  ? "http://localhost:5001"
-  : import.meta.env.VITE_API_URL ||
-    "https://user-register-server.onrender.com";
+const API_URL = "https://userregisterserver-ix3941s5.back4.app";
 
 const Register = () => {
   const [username, setUsername] = useState("");

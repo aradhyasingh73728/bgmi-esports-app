@@ -32,6 +32,9 @@ import Withdraw from "./pages/Withdraw";
 import WithdrawHistory from "./pages/WithdrawHistory";
 import BankDetails from "./pages/BankDetails";
 
+// MY WINNING HISTORY
+import WinningHistory from "./pages/WinningHistory";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./styles/appTheme.css";
 
@@ -177,6 +180,18 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <LiveMatches />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* MY WINNING HISTORY */}
+          <Route
+            path="/winning-history"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <WinningHistory />
                 </MainLayout>
               </ProtectedRoute>
             }
