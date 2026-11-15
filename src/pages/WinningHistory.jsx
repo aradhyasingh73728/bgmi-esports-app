@@ -12,7 +12,6 @@ const isLocalhost =
   window.location.hostname === "::1" ||
   window.location.hostname === "[::1]";
 
-// Tournament Management Server - Port 5005
 const TOURNAMENT_API = (
   isLocalhost
     ? "http://localhost:5005"
@@ -26,7 +25,6 @@ const TOURNAMENT_API = (
 
 const getProfileId = () => {
   try {
-    // Same login storage used in TournamentCard.jsx
     const storedUser = JSON.parse(
       localStorage.getItem("bgmi_user") || "null"
     );
@@ -37,10 +35,9 @@ const getProfileId = () => {
       "";
 
     if (profileId) {
-      return String(profileId);
+      return String(profileId).trim();
     }
 
-    // Fallback storage keys
     const directProfileId =
       localStorage.getItem("profile_id") ||
       localStorage.getItem("profileId");
@@ -62,7 +59,7 @@ const getProfileId = () => {
         user?.profileId ||
         user?.user?.profile_id ||
         ""
-      );
+      ).trim();
     }
 
     return "";
@@ -103,7 +100,7 @@ const WinningHistory = () => {
       setError("");
 
       // Check API URL
-      if (!API_BASE) {
+      if (!TOURNAMENT_API) {
         throw new Error("Tournament API URL configure nahi hai.");
       }
 
@@ -118,7 +115,7 @@ const WinningHistory = () => {
 
       // API request
       const response = await fetch(
-        `${API_BASE}/api/my-winning-history?profileId=${encodeURIComponent(
+        `${TOURNAMENT_API}/api/my-winning-history?profileId=${encodeURIComponent(
           profileId
         )}`,
         {
