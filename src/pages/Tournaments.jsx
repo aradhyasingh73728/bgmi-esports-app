@@ -8,11 +8,18 @@ import "./Tournaments.css";
 // API CONFIGURATION
 // ============================================================
 
+const isLocalhost =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1" ||
+  window.location.hostname === "::1" ||
+  window.location.hostname === "[::1]";
+
+// Tournament Management Server - Port 5005
 const TOURNAMENT_API = (
-  process.env.REACT_APP_TOURNAMENT_API_URL ||
-  (window.location.hostname === "localhost"
+  isLocalhost
     ? "http://localhost:5005"
-    : "")
+    : import.meta.env.VITE_TOURNAMENT_API_URL ||
+      "https://create-tournament-server-5005.onrender.com"
 ).replace(/\/+$/, "");
 
 // ============================================================
@@ -44,9 +51,11 @@ const normalizeTournament = (t) => {
   const entryFee = Number(t.entryFee ?? t.entry_fee ?? 0);
   const prizePool = Number(t.prizePool ?? t.prize_pool ?? 0);
   const perKill = Number(t.perKill ?? t.per_kill ?? 0);
+
   const totalSlots = Number(
     t.totalSlots ?? t.slots ?? t.maxSlots ?? 0
   );
+
   const joinedPlayers = Number(
     t.joinedPlayers ?? t.registered ?? 0
   );
@@ -58,6 +67,7 @@ const normalizeTournament = (t) => {
     tournament_id: t.tournament_id || t.id,
 
     name: t.name || t.tournament_name || "Untitled Tournament",
+
     tournament_name:
       t.tournament_name || t.name || "Untitled Tournament",
 
@@ -89,7 +99,9 @@ const normalizeTournament = (t) => {
     registered: joinedPlayers,
 
     description: t.description || "",
+
     rules: t.rules || t.description || "",
+
     rulesShort:
       t.rulesShort ||
       t.description ||
@@ -101,6 +113,7 @@ const normalizeTournament = (t) => {
     image_url: t.image_url || t.image || "",
 
     status: t.status || t.tournament_status || "Upcoming",
+
     tournament_status:
       t.tournament_status || t.status || "Upcoming",
 
@@ -161,8 +174,9 @@ const Tournaments = () => {
   const fetchTournaments = useCallback(async () => {
     if (!TOURNAMENT_API) {
       setError(
-        "Tournament API URL configured nahi hai. Production environment me REACT_APP_TOURNAMENT_API_URL set karo."
+        "Tournament API URL configured nahi hai. Production environment me VITE_TOURNAMENT_API_URL set karo."
       );
+
       setLoading(false);
       return;
     }
@@ -174,9 +188,11 @@ const Tournaments = () => {
         `${TOURNAMENT_API}/api/tournaments`,
         {
           method: "GET",
+
           headers: {
             Accept: "application/json",
           },
+
           cache: "no-store",
         }
       );
@@ -208,6 +224,10 @@ const Tournaments = () => {
       setLoading(false);
     }
   }, []);
+
+  // ============================================================
+  // INITIAL LOAD + AUTO REFRESH
+  // ============================================================
 
   useEffect(() => {
     fetchTournaments();
@@ -263,6 +283,7 @@ const Tournaments = () => {
   return (
     <div className="tournaments-page">
       <div className="tournaments-container">
+
         <header className="page-header">
           <h1>{getModeTitle(modeKey)}</h1>
 
@@ -316,6 +337,7 @@ const Tournaments = () => {
                 filteredTournaments.length === 0 && (
                   <div className="no-tournaments">
                     <h3>कोई टूर्नामेंट नहीं मिला</h3>
+
                     <p>
                       No tournaments available for this mode.
                     </p>
@@ -325,6 +347,7 @@ const Tournaments = () => {
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

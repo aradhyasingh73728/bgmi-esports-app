@@ -13,7 +13,7 @@ import "./DepositHistory.css";
 const DEPOSIT_API =
   window.location.hostname === "localhost"
     ? "http://localhost:5002"
-    : "https://deposit-and-join-tournament-server.onrender.com";
+    : "https://deposit-and-join-tournament-server-5002.onrender.com";
 
 /* ============================= FORMAT DATE ============================= */
 

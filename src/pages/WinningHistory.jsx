@@ -6,11 +6,18 @@ import "./WinningHistory.css";
 // API CONFIGURATION
 // ==========================================
 
-const API_BASE = (
-  process.env.REACT_APP_TOURNAMENT_API_URL ||
-  (window.location.hostname === "localhost"
+const isLocalhost =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1" ||
+  window.location.hostname === "::1" ||
+  window.location.hostname === "[::1]";
+
+// Tournament Management Server - Port 5005
+const TOURNAMENT_API = (
+  isLocalhost
     ? "http://localhost:5005"
-    : "")
+    : import.meta.env.VITE_TOURNAMENT_API_URL ||
+      "https://create-tournament-server-5005.onrender.com"
 ).replace(/\/+$/, "");
 
 // ==========================================

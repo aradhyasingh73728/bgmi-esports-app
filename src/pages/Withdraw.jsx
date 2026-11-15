@@ -10,11 +10,11 @@ import confetti from "canvas-confetti";
 
 const BALANCE_API = window.location.hostname === "localhost"
   ? "http://localhost:5002"
-  : "https://deposit-and-join-tournament-server.onrender.com";
+  : "https://deposit-and-join-tournament-server-5002.onrender.com";
 
 const WALLET_API = window.location.hostname === "localhost"
   ? "http://localhost:5003"
-  : "https://withdraw-server.onrender.com";
+  : "https://withdraw-server-3.onrender.com";
 
 const Withdraw = () => {
   const navigate = useNavigate();

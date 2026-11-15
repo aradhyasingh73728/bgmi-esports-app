@@ -9,7 +9,7 @@ const isLocalhost =
 const API_URL = isLocalhost
   ? "http://localhost:5001"
   : import.meta.env.VITE_API_URL ||
-    "https://user-register-server.onrender.com";
+    "https://user-register-server-5001.onrender.com";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");

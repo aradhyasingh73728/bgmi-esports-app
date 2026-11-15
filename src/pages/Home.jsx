@@ -11,10 +11,17 @@ import homeMobile from "../assets/bg/home-mobile.webp";
 // TOURNAMENT API CONFIGURATION
 // ==========================================
 
-const TOURNAMENT_API =
-  window.location.hostname === "localhost"
-    ? "http://localhost:5005"
-    : process.env.REACT_APP_TOURNAMENT_API_URL;
+
+const isLocalhost =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1" ||
+  window.location.hostname === "[::1]";
+
+const TOURNAMENT_API = isLocalhost
+  ? "http://localhost:5005"
+  : process.env.REACT_APP_TOURNAMENT_API_URL ||
+    "https://create-tournament-server-5005.onrender.com";
+
 
 // ==========================================
 // CHECK WHETHER VALUE IS TRUE

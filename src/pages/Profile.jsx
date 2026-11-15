@@ -1,9 +1,19 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLoading } from "../context/LoadingContext";
 import "./Profile.css";
 
-const API_URL = "http://localhost:5001";
+const isLocalhost =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1" ||
+  window.location.hostname === "[::1]";
+
+const API_URL = isLocalhost
+  ? "http://localhost:5001"
+  : import.meta.env.VITE_API_URL ||
+    "https://user-register-server-5001.onrender.com";
+
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
 // Built-in gaming avatars: public/avatars/avatar1.svg ... avatar12.svg

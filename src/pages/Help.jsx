@@ -14,7 +14,7 @@ const isLocalhost =
 
 const SUPPORT_API_URL = isLocalhost
   ? "http://localhost:5006"
-  : "https://your-production-support-server.onrender.com";
+  : "https://c-support-server-5006.onrender.com";
 
 /* ==========================================
    SUPABASE STORAGE BUCKET

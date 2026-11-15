@@ -13,7 +13,7 @@ import "./WithdrawHistory.css";
 const WITHDRAW_API =
   window.location.hostname === "localhost"
     ? "http://localhost:5003"
-    : "https://withdraw-server.onrender.com";
+    : "https://withdraw-server-3.onrender.com";
 
 /* ============================================================
    FORMAT INDIAN TIME

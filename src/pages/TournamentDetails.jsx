@@ -18,23 +18,32 @@ import "./TournamentDetails.css";
    ============================================================ */
 
 // Tournament Management Server - Port 5005
-const TOURNAMENT_API =
-  process.env.REACT_APP_TOURNAMENT_API_URL ||
-  (window.location.hostname === "localhost"
-    ? "http://localhost:5005"
-    : "");
+/* ============================================================
+   API CONFIG
+   ============================================================ */
+
+// Localhost check
+const isLocalhost =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1" ||
+  window.location.hostname === "::1" ||
+  window.location.hostname === "[::1]";
+
+// Tournament Management Server - Port 5005
+const TOURNAMENT_API = isLocalhost
+  ? "http://localhost:5005"
+  : import.meta.env.VITE_TOURNAMENT_API_URL ||
+    "https://create-tournament-server-5005.onrender.com";
 
 // Join Server - Port 5002
-const JOIN_API =
-  window.location.hostname === "localhost"
-    ? "http://localhost:5002"
-    : "https://deposit-and-join-tournament-server.onrender.com";
+const JOIN_API = isLocalhost
+  ? "http://localhost:5002"
+  : "https://deposit-and-join-tournament-server-5002.onrender.com";
 
 // User / Wallet Server - Port 5001
-const USER_API =
-  window.location.hostname === "localhost"
-    ? "http://localhost:5001"
-    : "https://user-register-server.onrender.com";
+const USER_API = isLocalhost
+  ? "http://localhost:5001"
+  : "https://user-register-server-5001.onrender.com";
 
 /* ============================================================
    HELPERS
@@ -251,7 +260,7 @@ const TournamentDetails = () => {
   const loadTournament = useCallback(async () => {
     if (!TOURNAMENT_API) {
       throw new Error(
-        "Tournament API URL is not configured. Please check REACT_APP_TOURNAMENT_API_URL."
+        "Tournament API URL is not configured. Please check VITE_TOURNAMENT_API_URL."
       );
     }
 
