@@ -5,7 +5,7 @@ import "./Register.css";
 // LIVE BACK4APP API
 // ==========================================
 
-const API_URL =  "https://z7jj2orzubrq.ramnaymcloud.com";
+const API_URL = "https://user-register-server-5001.onrender.com";
 
 const Register = () => {
   const [username, setUsername] = useState("");
