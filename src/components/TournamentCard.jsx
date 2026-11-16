@@ -19,7 +19,7 @@ const TournamentCard = ({ t }) => {
   const API_URL =
     window.location.hostname === "localhost"
       ? "http://localhost:5002"
-      : "https://deposit-and-join-tournament-server.onrender.com";
+      : "https://deposit-and-join-tournament-server-5002.onrender.com";
 
   // ==========================================
   // TOURNAMENT DETAILS
