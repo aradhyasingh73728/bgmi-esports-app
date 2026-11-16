@@ -12,7 +12,7 @@
   min-height: 100vh;
   width: 100%;
   background: transparent !important;
-  overflow: visible;
+  overflow: visible !important;
 }
 
 /* Full Screen Fixed Background */
@@ -38,7 +38,7 @@
 .page-esports .hero {
   position: relative;
   z-index: 20;
-  overflow: visible;
+  overflow: visible !important;
 
   background: transparent !important;
   background-image: none !important;
@@ -49,7 +49,7 @@
 .page-esports .hero-left {
   position: relative;
   z-index: 30;
-  overflow: visible;
+  overflow: visible !important;
 }
 
 .page-esports .hero-right {
@@ -62,7 +62,7 @@
 .page-esports .hero-actions {
   position: relative;
   z-index: 100;
-  overflow: visible;
+  overflow: visible !important;
 }
 
 /* =====================================================
@@ -72,7 +72,7 @@
 .page-esports .all-tour-wrapper {
   position: relative;
   z-index: 999;
-  overflow: visible;
+  overflow: visible !important;
 }
 
 /* Dropdown Menu */
@@ -87,7 +87,7 @@
   display: flex;
   flex-direction: column;
 
-  overflow: visible;
+  overflow: visible !important;
 }
 
 /* Dropdown Items */
@@ -99,17 +99,28 @@
 
 /* =====================================================
    TOURNAMENT SECTION
-   Keep Below Dropdown
+   Natural Page Scrolling
 ===================================================== */
 
 .page-esports .tournaments-section {
   position: relative;
   z-index: 1;
+
+  width: 100%;
   min-height: 0;
+  height: auto;
+  max-height: none;
+
   background: transparent !important;
-  overflow-y: auto !important;
-  overflow-x: hidden;
-  padding-bottom: calc(140px + env(safe-area-inset-bottom));
+
+  overflow: visible !important;
+
+  padding-bottom: calc(
+    180px + env(safe-area-inset-bottom)
+  );
+
+  box-sizing: border-box;
+  scroll-padding-bottom: 180px;
 }
 
 /* Tournament Wrapper */
@@ -118,8 +129,10 @@
   position: relative;
   z-index: 1;
 
+  width: 100%;
+
   background: transparent !important;
-  overflow: visible;
+  overflow: visible !important;
 }
 
 /* Tournament Grid */
@@ -128,7 +141,10 @@
   position: relative;
   z-index: 1;
 
+  width: 100%;
+
   background: transparent !important;
+  overflow: visible !important;
 }
 
 /* Tournament Cards */
@@ -136,6 +152,8 @@
 .page-esports .tour-grid > * {
   position: relative;
   z-index: 1;
+
+  max-width: 100%;
 }
 
 /* =====================================================
@@ -144,6 +162,12 @@
 
 @media screen and (max-width: 768px) {
 
+  .page-esports {
+    min-height: 100vh;
+    height: auto;
+    overflow: visible !important;
+  }
+
   .page-esports::before {
     background-image: var(--home-mobile);
     background-size: cover;
@@ -151,4 +175,25 @@
     background-repeat: no-repeat;
   }
 
+  .page-esports .tournaments-section {
+    height: auto;
+    max-height: none;
+    min-height: 0;
+
+    overflow: visible !important;
+
+    padding-bottom: calc(
+      200px + env(safe-area-inset-bottom)
+    );
+  }
+
+  .page-esports .tour-grid-wrapper,
+  .page-esports .tour-grid {
+    overflow: visible !important;
+  }
+
 }
+
+/* =====================================================
+   END OF HOME CSS
+===================================================== */
