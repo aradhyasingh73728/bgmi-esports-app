@@ -105,9 +105,11 @@
 .page-esports .tournaments-section {
   position: relative;
   z-index: 1;
-
+  min-height: 0;
   background: transparent !important;
-  overflow: visible;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  padding-bottom: calc(140px + env(safe-area-inset-bottom));
 }
 
 /* Tournament Wrapper */

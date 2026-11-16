@@ -403,10 +403,12 @@ body {
 
 .tournaments-section {
   flex: 1;
+  min-height: 0;
   overflow-y: auto !important;
   overflow-x: hidden;
   margin-top: 2px;
-  padding: 8px 4px 110px;
+  padding: 8px 4px 140px;
+  padding-bottom: calc(140px + env(safe-area-inset-bottom));
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
