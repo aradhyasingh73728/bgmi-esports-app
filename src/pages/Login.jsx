@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import "./Login.css";
 
 // ==========================================
-// LIVE BACK4APP API
+// API URL - LOCAL + LIVE
 // ==========================================
 
 const isLocalhost =
@@ -11,28 +11,240 @@ const isLocalhost =
   window.location.hostname === "127.0.0.1" ||
   window.location.hostname === "[::1]";
 
-
 const API_URL = isLocalhost
   ? "http://localhost:5001"
   : import.meta.env.VITE_API_URL ||
     "https://user-register-server-5001.onrender.com";
 
+// ==========================================
+// DEVICE INSTALLATION ID
+// SAME KEY AS Register.jsx
+// ==========================================
+
+const getInstallationId = () => {
+  try {
+    let installationId = localStorage.getItem(
+      "bgmi_installation_id"
+    );
+
+    if (!installationId) {
+      if (
+        window.crypto &&
+        typeof window.crypto.randomUUID === "function"
+      ) {
+        installationId = window.crypto.randomUUID();
+      } else {
+        installationId =
+          "bgmi-" +
+          Date.now().toString(36) +
+          "-" +
+          Math.random().toString(36).substring(2) +
+          Math.random().toString(36).substring(2);
+      }
+
+      localStorage.setItem(
+        "bgmi_installation_id",
+        installationId
+      );
+    }
+
+    return installationId;
+  } catch (error) {
+    console.error("DEVICE ID ERROR:", error);
+
+    throw new Error(
+      "Device identification failed. Please enable browser storage."
+    );
+  }
+};
+
+// ==========================================
+// DEVICE INFORMATION
+// SAME FORMAT AS Register.jsx
+// ==========================================
+
+const getDeviceDetails = () => {
+  const userAgent = navigator.userAgent || "";
+  const platform = navigator.platform || "Unknown";
+
+  let deviceName = "Unknown Device";
+  let operatingSystem = "Unknown OS";
+  let osVersion = "Unknown";
+  let browserName = "Unknown Browser";
+  let browserVersion = "Unknown";
+  let deviceType = "Desktop";
+
+  // ----------------------------------------
+  // OPERATING SYSTEM
+  // ----------------------------------------
+
+  if (/Windows NT 10\.0/i.test(userAgent)) {
+    operatingSystem = "Windows";
+    osVersion = "10 or 11";
+    deviceName = "Windows PC";
+  } else if (/Windows NT 6\.3/i.test(userAgent)) {
+    operatingSystem = "Windows";
+    osVersion = "8.1";
+    deviceName = "Windows PC";
+  } else if (/Windows NT 6\.2/i.test(userAgent)) {
+    operatingSystem = "Windows";
+    osVersion = "8";
+    deviceName = "Windows PC";
+  } else if (/Android/i.test(userAgent)) {
+    operatingSystem = "Android";
+
+    const androidMatch = userAgent.match(/Android\s([\d.]+)/i);
+    osVersion = androidMatch ? androidMatch[1] : "Unknown";
+
+    deviceName = "Android Device";
+  } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
+    operatingSystem = "iOS";
+
+    const iosMatch = userAgent.match(/OS\s([\d_]+)/i);
+    osVersion = iosMatch
+      ? iosMatch[1].replace(/_/g, ".")
+      : "Unknown";
+
+    deviceName = /iPad/i.test(userAgent)
+      ? "Apple iPad"
+      : "Apple iPhone";
+  } else if (/Mac OS X/i.test(userAgent)) {
+    operatingSystem = "macOS";
+
+    const macMatch = userAgent.match(/Mac OS X\s([\d_]+)/i);
+    osVersion = macMatch
+      ? macMatch[1].replace(/_/g, ".")
+      : "Unknown";
+
+    deviceName = "Mac";
+  } else if (/Linux/i.test(userAgent)) {
+    operatingSystem = "Linux";
+    osVersion = "Unknown";
+    deviceName = "Linux Device";
+  }
+
+  // ----------------------------------------
+  // DEVICE TYPE
+  // ----------------------------------------
+
+  if (/iPad|Tablet/i.test(userAgent)) {
+    deviceType = "Tablet";
+  } else if (
+    /Mobile|Android|iPhone|iPod/i.test(userAgent)
+  ) {
+    deviceType = "Mobile";
+  } else {
+    deviceType = "Desktop";
+  }
+
+  // ----------------------------------------
+  // BROWSER NAME AND VERSION
+  // ----------------------------------------
+
+  let browserMatch = null;
+
+  if (/Edg\//i.test(userAgent)) {
+    browserName = "Microsoft Edge";
+    browserMatch = userAgent.match(/Edg\/([\d.]+)/i);
+  } else if (/OPR\//i.test(userAgent)) {
+    browserName = "Opera";
+    browserMatch = userAgent.match(/OPR\/([\d.]+)/i);
+  } else if (/SamsungBrowser\//i.test(userAgent)) {
+    browserName = "Samsung Internet";
+    browserMatch = userAgent.match(/SamsungBrowser\/([\d.]+)/i);
+  } else if (/Firefox\//i.test(userAgent)) {
+    browserName = "Firefox";
+    browserMatch = userAgent.match(/Firefox\/([\d.]+)/i);
+  } else if (/Chrome\//i.test(userAgent)) {
+    browserName = "Google Chrome";
+    browserMatch = userAgent.match(/Chrome\/([\d.]+)/i);
+  } else if (/Safari\//i.test(userAgent)) {
+    browserName = "Safari";
+    browserMatch = userAgent.match(/Version\/([\d.]+)/i);
+  }
+
+  browserVersion = browserMatch
+    ? browserMatch[1]
+    : "Unknown";
+
+  // ----------------------------------------
+  // TIMEZONE
+  // ----------------------------------------
+
+  let timezone = "Unknown";
+
+  try {
+    timezone =
+      Intl.DateTimeFormat().resolvedOptions().timeZone ||
+      "Unknown";
+  } catch (error) {
+    timezone = "Unknown";
+  }
+
+  // ----------------------------------------
+  // RETURN DEVICE INFORMATION
+  // ----------------------------------------
+
+  return {
+    installationId: getInstallationId(),
+
+    deviceName,
+    operatingSystem,
+    osVersion,
+
+    browserName,
+    browserVersion,
+
+    deviceType,
+
+    screenWidth: window.screen?.width || null,
+    screenHeight: window.screen?.height || null,
+
+    language: navigator.language || "Unknown",
+    timezone,
+
+    platform,
+  };
+};
+
+// ==========================================
+// LOGIN COMPONENT
+// ==========================================
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showRegisteredMsg, setShowRegisteredMsg] = useState(false);
 
-  useEffect(() => {
-    const savedEmail = sessionStorage.getItem("auto_login_email");
-    const savedPassword = sessionStorage.getItem("auto_login_password");
+  // ==========================================
+  // PAGE LOAD
+  // ==========================================
 
-    const urlParams = new URLSearchParams(window.location.search);
+  useEffect(() => {
+    const savedEmail = sessionStorage.getItem(
+      "auto_login_email"
+    );
+
+    const savedPassword = sessionStorage.getItem(
+      "auto_login_password"
+    );
+
+    const urlParams = new URLSearchParams(
+      window.location.search
+    );
+
     const registeredParam = urlParams.get("registered");
 
-    if (savedEmail) setEmail(savedEmail);
-    if (savedPassword) setPassword(savedPassword);
+    if (savedEmail) {
+      setEmail(savedEmail);
+    }
+
+    if (savedPassword) {
+      setPassword(savedPassword);
+    }
 
     if (registeredParam === "1") {
       setShowRegisteredMsg(true);
@@ -41,7 +253,20 @@ const Login = () => {
         setShowRegisteredMsg(false);
       }, 5000);
 
+      try {
+        getInstallationId();
+      } catch (error) {
+        console.error(error);
+      }
+
       return () => clearTimeout(timer);
+    }
+
+    try {
+      getInstallationId();
+    } catch (error) {
+      console.error(error);
+      setError(error.message);
     }
   }, []);
 
@@ -56,21 +281,33 @@ const Login = () => {
     setLoading(true);
 
     try {
+      const deviceDetails = getDeviceDetails();
+
+      const payload = {
+        email: email.toLowerCase().trim(),
+        password: password.trim(),
+
+        ...deviceDetails,
+      };
+
+      console.log("LOGIN DEVICE INFO:", deviceDetails);
+
       const loginRes = await fetch(`${API_URL}/api/login`, {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email: email.toLowerCase().trim(),
-          password: password.trim(),
-        }),
+
+        body: JSON.stringify(payload),
       });
 
       const serverData = await loginRes.json();
 
       if (!loginRes.ok || !serverData.success) {
-        throw new Error(serverData.error || "❌ Login failed!");
+        throw new Error(
+          serverData.error || "❌ Login failed!"
+        );
       }
 
       const freshUser = serverData.user;
@@ -98,6 +335,7 @@ const Login = () => {
     } catch (err) {
       console.error("Login error:", err);
       setError(err.message || "❌ Login failed!");
+
     } finally {
       setLoading(false);
     }
