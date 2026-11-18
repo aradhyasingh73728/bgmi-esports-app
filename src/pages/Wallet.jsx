@@ -25,6 +25,29 @@ const DEPOSIT_API =
     ? "http://localhost:5002"
     : "https://deposit-and-join-tournament-server-5002.onrender.com";
 
+// ==========================================
+// AUTH TOKEN
+// ==========================================
+const getAuthToken = () => {
+  try {
+    const storedUser = localStorage.getItem("bgmi_user");
+
+    if (!storedUser) return "";
+
+    const parsedUser = JSON.parse(storedUser);
+
+    return String(
+      parsedUser?.backend_token ||
+      parsedUser?.user?.backend_token ||
+      parsedUser?.token ||
+      parsedUser?.user?.token ||
+      ""
+    ).trim();
+  } catch (error) {
+    return "";
+  }
+};
+
 const Wallet = () => {
   const navigate = useNavigate();
 
@@ -167,12 +190,22 @@ const Wallet = () => {
       if (!user?.profile_id) return;
 
       try {
+        const token = getAuthToken();
+
+        if (!token) {
+          console.error(
+            "❌ Deposit history: Auth token missing"
+          );
+          return;
+        }
+
         const res = await axios.get(
-          `${DEPOSIT_API}/api/deposits?profileId=${encodeURIComponent(
-            user.profile_id
-          )}&_=${Date.now()}`,
+          `${DEPOSIT_API}/api/deposits?_=${Date.now()}`,
           {
             timeout: 5000,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
@@ -190,7 +223,11 @@ const Wallet = () => {
           user.profile_id
         );
       } catch (err) {
-        // Silent fail
+        console.error(
+          "❌ Deposit history error:",
+          err.response?.status,
+          err.response?.data || err.message
+        );
       }
     },
     [user?.profile_id]

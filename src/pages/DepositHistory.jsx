@@ -15,6 +15,29 @@ const DEPOSIT_API =
     ? "http://localhost:5002"
     : "https://deposit-and-join-tournament-server-5002.onrender.com";
 
+/* ============================= AUTH TOKEN ============================= */
+
+// ✅ CHANGED: login page token ko "backend_token" naam se save karta hai
+const getAuthToken = () => {
+  try {
+    const storedUser = localStorage.getItem("bgmi_user");
+
+    if (!storedUser) return "";
+
+    const parsedUser = JSON.parse(storedUser);
+
+    return String(
+      parsedUser?.backend_token ||
+      parsedUser?.user?.backend_token ||
+      parsedUser?.token ||
+      parsedUser?.user?.token ||
+      ""
+    ).trim();
+  } catch (error) {
+    return "";
+  }
+};
+
 /* ============================= FORMAT DATE ============================= */
 
 const formatIndianTime = (utcDate) => {
@@ -126,6 +149,25 @@ const DepositHistory = () => {
       const cleanProfileId =
         String(profileId).trim();
 
+      /* ============================================================
+         GET LOGIN TOKEN
+         ============================================================ */
+
+      const token = getAuthToken();
+
+      if (!token) {
+        console.error("❌ AUTH TOKEN MISSING");
+
+        localStorage.removeItem("bgmi_user");
+        setDeposits([]);
+
+        navigate("/login", {
+          replace: true,
+        });
+
+        return;
+      }
+
       console.log(
         "👤 Loading deposits for:",
         cleanProfileId
@@ -135,7 +177,8 @@ const DepositHistory = () => {
          BACKEND REQUEST
 
          IMPORTANT:
-         Backend sirf isi profile ke deposits return karega.
+         Backend ab token se user pehchanta hai aur sirf usi
+         profile ke deposits return karta hai.
          Timestamp query ko fresh rakhta hai.
          ============================================================ */
 
@@ -149,7 +192,27 @@ const DepositHistory = () => {
       const response = await fetch(url, {
         method: "GET",
         cache: "no-store",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      /* ============================================================
+         SESSION EXPIRED / INVALID TOKEN
+         ============================================================ */
+
+      if (response.status === 401) {
+        console.error("❌ SESSION EXPIRED (401)");
+
+        localStorage.removeItem("bgmi_user");
+        setDeposits([]);
+
+        navigate("/login", {
+          replace: true,
+        });
+
+        return;
+      }
 
       /* ============================================================
          RESPONSE CHECK

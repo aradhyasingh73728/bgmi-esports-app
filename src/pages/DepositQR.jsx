@@ -1,8 +1,9 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { QRCodeSVG } from "qrcode.react";
 import "./DepositQR.css";
 import { useLoading } from "../context/LoadingContext";
+import { buildUpiUri } from "../utils/upi";
 
 /* ============================= API ============================= */
 
@@ -24,6 +25,29 @@ const ALLOWED_DEPOSIT_AMOUNTS = [
   5000,
 ];
 
+/* ============================= AUTH TOKEN ============================= */
+
+// ✅ CHANGED: login page token ko "backend_token" naam se save karta hai
+const getAuthToken = () => {
+  try {
+    const storedUser = localStorage.getItem("bgmi_user");
+
+    if (!storedUser) return "";
+
+    const parsedUser = JSON.parse(storedUser);
+
+    return String(
+      parsedUser?.backend_token ||
+      parsedUser?.user?.backend_token ||
+      parsedUser?.token ||
+      parsedUser?.user?.token ||
+      ""
+    ).trim();
+  } catch (error) {
+    return "";
+  }
+};
+
 /* ============================= COMPONENT ============================= */
 
 export default function DepositQR() {
@@ -39,6 +63,10 @@ export default function DepositQR() {
   const [utr, setUtr] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  /* ============================= DYNAMIC UPI URI ============================= */
+
+  const upiUri = useMemo(() => buildUpiUri(amount), [amount]);
 
   /* ============================= LOAD PAGE DATA ============================= */
 
@@ -79,6 +107,15 @@ export default function DepositQR() {
         return;
       }
 
+      if (!getAuthToken()) {
+        alert("Session expired. Please login again.");
+
+        localStorage.removeItem("bgmi_user");
+
+        navigate("/login", { replace: true });
+        return;
+      }
+
       setProfileId(String(realProfileId).trim());
 
       console.log("👤 Deposit profile:", realProfileId);
@@ -108,6 +145,17 @@ export default function DepositQR() {
       return;
     }
 
+    const token = getAuthToken();
+
+    if (!token) {
+      alert("Session expired. Please login again.");
+
+      localStorage.removeItem("bgmi_user");
+
+      navigate("/login");
+      return;
+    }
+
     if (
       !Number.isInteger(amount) ||
       !ALLOWED_DEPOSIT_AMOUNTS.includes(amount)
@@ -130,14 +178,13 @@ export default function DepositQR() {
     setGlobalLoading(true);
 
     try {
+      // profileId yahan nahi bhejte: server user ko token se pehchanta hai
       const payload = {
-        profileId,
         amount,
         utr: cleanUtr,
       };
 
       console.log("📤 DEPOSIT REQUEST:", {
-        profileId,
         amount,
         utr: "********" + cleanUtr.slice(-4),
       });
@@ -146,6 +193,7 @@ export default function DepositQR() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -160,6 +208,15 @@ export default function DepositQR() {
       }
 
       console.log("📥 DEPOSIT RESPONSE:", data);
+
+      if (response.status === 401) {
+        localStorage.removeItem("bgmi_user");
+
+        alert(data?.message || "Session expired. Please login again.");
+
+        navigate("/login", { replace: true });
+        return;
+      }
 
       if (!response.ok || data?.success !== true) {
         throw new Error(data?.message || "Deposit request failed");
@@ -223,11 +280,25 @@ export default function DepositQR() {
       <div className="qr-image-section">
 
         <div className="qr-image-wrapper">
-          <img
-            src="/qr.png"
-            alt="UPI Payment QR Code"
-            className="payment-qr-image"
-          />
+          {upiUri ? (
+            <QRCodeSVG
+              value={upiUri}
+              size={240}
+              level="M"
+              marginSize={2}
+              bgColor="#ffffff"
+              fgColor="#000000"
+              className="payment-qr-image"
+              style={{
+                width: "100%",
+                maxWidth: 240,
+                height: "auto",
+                background: "#ffffff",
+              }}
+            />
+          ) : (
+            <p>QR could not be generated</p>
+          )}
         </div>
 
         <p className="qr-payment-text">
