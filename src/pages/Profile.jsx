@@ -27,7 +27,7 @@ const getFallbackAvatar = (name) =>
     name || "User"
   )}&background=1e40af&color=fff&size=512`;
 
-// User data jis storage me hai usi me update karne ke liye
+// Update user data in the same storage where it is currently saved
 const getStorage = () =>
   localStorage.getItem("bgmi_user") ? localStorage : sessionStorage;
 
@@ -43,7 +43,7 @@ const getStoredUser = () => {
   }
 };
 
-// Login page token ko "backend_token" naam se save karta hai
+// The login page saves the token using the "backend_token" key
 const getToken = (user) =>
   user?.backend_token || user?.token || null;
 
@@ -69,13 +69,13 @@ const Profile = () => {
         const parsedUser = getStoredUser();
         const token = getToken(parsedUser);
 
-        // User ya token nahi hai to login pe bhejo
+        // Redirect to login if user data or token is missing
         if (!parsedUser || !token) {
           navigate("/login");
           return;
         }
 
-        // Pehle stored data se turant profile dikha do
+        // Display the profile immediately using stored data
         setProfile({
           id: parsedUser.profile_id || "BGMI-Loading...",
           name: parsedUser.username || "User",
@@ -85,7 +85,7 @@ const Profile = () => {
           email: parsedUser.email,
         });
 
-        // Fresh data from server (token se)
+        // Fetch fresh profile data from the server using the token
         const serverRes = await fetch(
           `${API_URL}/api/my-profile`,
           {
@@ -95,7 +95,7 @@ const Profile = () => {
           }
         );
 
-        // Token expire ho gaya ya invalid hai
+        // Check whether the token has expired or is invalid
         if (
           serverRes.status === 401 ||
           serverRes.status === 403
@@ -105,7 +105,7 @@ const Profile = () => {
           return;
         }
 
-        // Route na mile ya server error ho to stored data se hi chalne do
+        // Continue using stored data if the route is unavailable or the server returns an error
         if (!serverRes.ok) {
           console.warn(
             "⚠️ my-profile failed:",
@@ -119,7 +119,7 @@ const Profile = () => {
         if (serverData.success) {
           const freshUser = serverData.user;
 
-          // Token wapas merge karo
+          // Merge the token back into the updated user data
           getStorage().setItem(
             "bgmi_user",
             JSON.stringify({
@@ -147,7 +147,7 @@ const Profile = () => {
     loadProfile();
   }, [navigate, setLoading]);
 
-  // Preview ka memory leak band karne ke liye
+  // Prevent memory leaks by revoking the preview URL
   useEffect(() => {
     return () => {
       if (previewUrl) {
@@ -162,20 +162,20 @@ const Profile = () => {
     setIsEditingAvatar(false);
   };
 
-  // File select + validation
+  // Handle file selection and validation
   const handleFileChange = (e) => {
     const file = e.target.files[0];
 
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("Sirf image file select karo");
+      alert("Please select an image file.");
       e.target.value = "";
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      alert("Image 2MB se choti honi chahiye");
+      alert("Image size must be less than 2MB.");
       e.target.value = "";
       return;
     }
@@ -184,7 +184,7 @@ const Profile = () => {
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  // Handle Avatar Update (Default or Custom Upload)
+  // Handle avatar update (default avatar or custom upload)
   const handleUpdateAvatar = async (avatarSource) => {
     setLoading(true);
 
@@ -193,7 +193,7 @@ const Profile = () => {
       const token = getToken(storedUser);
 
       if (!storedUser || !token) {
-        alert("Session expire ho gaya, dobara login karo");
+        alert("Your session has expired. Please log in again.");
         navigate("/login");
         return;
       }
@@ -204,7 +204,7 @@ const Profile = () => {
       };
 
       if (typeof avatarSource === "string") {
-        // Default gaming avatar select kiya hai
+        // A default gaming avatar has been selected
         bodyData = JSON.stringify({
           avatarUrl: avatarSource,
         });
@@ -226,10 +226,10 @@ const Profile = () => {
         }
       );
 
-      // Token expire / invalid
+      // Handle expired or invalid tokens
       if (res.status === 401 || res.status === 403) {
         clearSession();
-        alert("Session expire ho gaya, dobara login karo");
+        alert("Your session has expired. Please log in again.");
         navigate("/login");
         return;
       }
@@ -242,7 +242,7 @@ const Profile = () => {
           avatar: data.avatar,
         }));
 
-        // Storage update karein
+        // Update user data in storage
         const storage = getStorage();
 
         const userData = JSON.parse(
@@ -260,12 +260,12 @@ const Profile = () => {
       } else {
         alert(
           data.message ||
-            "Profile picture update nahi ho paayi"
+            "Unable to update profile picture."
         );
       }
     } catch (err) {
       console.error("Avatar update failed", err);
-      alert("Server error, thodi der baad try karo");
+      alert("Server error. Please try again later.");
     } finally {
       setLoading(false);
     }

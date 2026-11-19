@@ -34,7 +34,7 @@ const getJson = async (response) => {
   try {
     data = text ? JSON.parse(text) : {};
   } catch {
-    throw new Error("Server ne invalid response bheja.");
+    throw new Error("Server returned an invalid response.");
   }
 
   if (!response.ok) {
@@ -46,7 +46,7 @@ const getJson = async (response) => {
   return data;
 };
 
-// API response ko TournamentCard ke expected format me convert karna
+// Convert API response into the format expected by TournamentCard
 const normalizeTournament = (t) => {
   const entryFee = Number(t.entryFee ?? t.entry_fee ?? 0);
   const prizePool = Number(t.prizePool ?? t.prize_pool ?? 0);
@@ -136,7 +136,7 @@ const Tournaments = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // URL se mode read karo
+  // Read mode from URL
   const rawMode = searchParams.get("mode") || "all";
   const mode = rawMode.toLowerCase();
 
@@ -144,7 +144,7 @@ const Tournaments = () => {
   const normalize = (str = "") =>
     String(str).toLowerCase().replace(/\s+/g, "");
 
-  // URL mode ko internal filter key me convert karo
+  // Convert URL mode into an internal filter key
   const getModeKeyFromQuery = (m) => {
     if (m === "all") return "all";
     if (m.includes("1v1")) return "1v1";
@@ -156,7 +156,7 @@ const Tournaments = () => {
 
   const modeKey = getModeKeyFromQuery(mode);
 
-  // Tournament mode identify karo
+  // Identify tournament mode
   const getModeKeyFromTournament = (tMode) => {
     const nm = normalize(tMode);
 
@@ -174,7 +174,7 @@ const Tournaments = () => {
   const fetchTournaments = useCallback(async () => {
     if (!TOURNAMENT_API) {
       setError(
-        "Tournament API URL configured nahi hai. Production environment me VITE_TOURNAMENT_API_URL set karo."
+        "Tournament API URL is not configured. Set VITE_TOURNAMENT_API_URL in the production environment."
       );
 
       setLoading(false);
@@ -199,7 +199,7 @@ const Tournaments = () => {
 
       const data = await getJson(response);
 
-      // API array ya object ke andar tournaments return kar sakti hai
+      // The API may return tournaments as an array or inside an object
       const list = Array.isArray(data)
         ? data
         : Array.isArray(data.tournaments)
@@ -218,7 +218,7 @@ const Tournaments = () => {
 
       setError(
         err.message ||
-          "Tournaments load nahi ho paaye. Please try again."
+          "Unable to load tournaments. Please try again."
       );
     } finally {
       setLoading(false);
@@ -232,7 +232,7 @@ const Tournaments = () => {
   useEffect(() => {
     fetchTournaments();
 
-    // Har 30 seconds me list refresh
+    // Refresh the tournament list every 30 seconds
     const interval = setInterval(() => {
       fetchTournaments();
     }, 30000);
@@ -336,7 +336,7 @@ const Tournaments = () => {
                 !error &&
                 filteredTournaments.length === 0 && (
                   <div className="no-tournaments">
-                    <h3>कोई टूर्नामेंट नहीं मिला</h3>
+                    <h3>No Tournament Found</h3>
 
                     <p>
                       No tournaments available for this mode.

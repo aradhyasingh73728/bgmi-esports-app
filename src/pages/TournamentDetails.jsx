@@ -69,7 +69,7 @@ const getJson = async (response) => {
   return data;
 };
 
-// Backend fields ko frontend ke expected fields mein convert karo.
+// Convert backend fields into the fields expected by the frontend.
 const normalizeTournament = (item) => {
   if (!item) return null;
 
@@ -328,7 +328,7 @@ const TournamentDetails = () => {
       }
 
       throw new Error(
-        "Tournament nahi mila. Check karo tournament published hai ya nahi."
+        "Tournament not found. Please check whether it has been published."
       );
     }
 
@@ -445,7 +445,7 @@ const TournamentDetails = () => {
         return;
       }
 
-      // Tournament se date aur time lo
+      // Get the tournament date and time
       const matchDate = String(
         tournament.date || ""
       ).trim();
@@ -454,7 +454,7 @@ const TournamentDetails = () => {
         tournament.time || ""
       ).trim();
 
-      // Date/time missing ho to incomplete API request mat bhejo
+      // Do not send an incomplete API request if date or time is missing
       if (!matchDate || !matchTime) {
         console.error(
           "Tournament date/time missing:",
@@ -608,7 +608,7 @@ const TournamentDetails = () => {
 
           setErrorMsg(
             error?.message ||
-            "Tournament load nahi ho paya."
+            "Unable to load tournament."
           );
         }
       } finally {
@@ -727,7 +727,7 @@ const TournamentDetails = () => {
 
             <p>
               {errorMsg ||
-                "Tournament available nahi hai ya publish nahi hua hai."}
+                "Tournament is unavailable or has not been published."}
             </p>
 
             <button
@@ -785,7 +785,7 @@ const TournamentDetails = () => {
 
     if (!playerName || !bgmiId) {
       setErrorMsg(
-        "❌ BGMI Name & ID daalo!"
+        "❌ Please enter your BGMI Name and ID!"
       );
       return;
     }
@@ -796,7 +796,7 @@ const TournamentDetails = () => {
 
     if (playerName.length > 20) {
       setErrorMsg(
-        "❌ BGMI Name maximum 20 characters ka hona chahiye!"
+        "❌ BGMI Name must be 20 characters or fewer!"
       );
       return;
     }
@@ -807,7 +807,7 @@ const TournamentDetails = () => {
 
     if (!/^\d+$/.test(bgmiId)) {
       setErrorMsg(
-        "❌ BGMI ID sirf numbers me honi chahiye!"
+        "❌ BGMI ID must contain numbers only!"
       );
       return;
     }
@@ -829,7 +829,7 @@ const TournamentDetails = () => {
     const profileId = getProfileId();
 
     if (!profileId) {
-      setErrorMsg("❌ Login karo pehle!");
+      setErrorMsg("❌ Please log in first!");
       navigate("/login");
       return;
     }
@@ -840,7 +840,7 @@ const TournamentDetails = () => {
 
     if (!tournament.date || !tournament.time) {
       setErrorMsg(
-        "❌ Tournament date/time missing hai. Please refresh."
+        "❌ Tournament date/time is missing. Please refresh."
       );
       return;
     }
@@ -860,7 +860,7 @@ const TournamentDetails = () => {
       balance < entryFee
     ) {
       setErrorMsg(
-        `❌ Balance kam hai!\n💰 Chahiye: ₹${entryFee}\n💳 Hai: ₹${balance}`
+        `❌ Insufficient balance!\n💰 Required: ₹${entryFee}\n💳 Available: ₹${balance}`
       );
       return;
     }
@@ -871,7 +871,7 @@ const TournamentDetails = () => {
 
     if (liveSlots >= maxSlots) {
       setIsFull(true);
-      setErrorMsg("🔴 Tournament Full hai!");
+      setErrorMsg("🔴 Tournament is full!");
       return;
     }
 
@@ -1106,7 +1106,7 @@ const TournamentDetails = () => {
 
         setErrorMsg(
           result?.message ||
-          "🔴 Tournament Full!"
+          "🔴 Tournament is full!"
         );
 
         return;

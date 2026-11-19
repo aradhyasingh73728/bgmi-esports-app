@@ -101,7 +101,7 @@ const WinningHistory = () => {
 
       // Check API URL
       if (!TOURNAMENT_API) {
-        throw new Error("Tournament API URL configure nahi hai.");
+        throw new Error("Tournament API URL is not configured.");
       }
 
       // Get logged-in profile ID
@@ -109,7 +109,7 @@ const WinningHistory = () => {
 
       if (!profileId) {
         throw new Error(
-          "Profile ID nahi mili. Please logout karke dobara login karo."
+          "Profile ID not found. Please log out and log in again."
         );
       }
 
@@ -150,7 +150,7 @@ const WinningHistory = () => {
       console.error("Winning History Error:", err);
 
       setError(
-        err.message || "Winning history load nahi ho payi."
+        err.message || "Unable to load winning history."
       );
 
       setHistory([]);

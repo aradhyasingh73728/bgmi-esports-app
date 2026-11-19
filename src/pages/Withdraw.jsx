@@ -195,7 +195,7 @@ const Withdraw = () => {
     e.preventDefault();
 
     if (!bankVerified) {
-      alert("🚫 Pehle bank verify karo!");
+      alert("🚫 Please verify your bank account first!");
       return;
     }
 
@@ -260,7 +260,7 @@ const Withdraw = () => {
       const errorData = err.response?.data;
 
       if (errorData?.needBank) {
-        alert("❌ BANK ADD KARO!\n👉 Bank Details → Save");
+        alert("❌ PLEASE ADD YOUR BANK DETAILS!\n👉 Bank Details → Save");
         navigate("/bank-details");
       } else {
         setError(errorData?.error || "Server error (5003 down?)");

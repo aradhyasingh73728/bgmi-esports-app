@@ -2,7 +2,7 @@
 /* =====================================================
    BGMI ESPORTS - PREMIUM REGISTER PAGE
    BLACK & RED GAMING THEME
-   Compact Mobile | Neon Red Glow
+   Mobile Keyboard Scroll Fix + Google Sign-In
 ===================================================== */
 
 *,
@@ -12,8 +12,6 @@
   font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-/* ================= BODY ================= */
-
 html,
 body,
 #root {
@@ -21,9 +19,15 @@ body,
   margin: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   background: #000000;
   color: #ffffff;
+  overflow-x: hidden;
 }
 
 /* ================= CENTER WRAPPER ================= */
@@ -37,7 +41,7 @@ body {
   justify-content: center;
   align-items: center;
 
-  padding: 12px;
+  padding: 16px 12px;
 
   background:
     radial-gradient(
@@ -46,6 +50,11 @@ body {
       transparent 45%
     ),
     #000000;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ================= REGISTER CARD ================= */
@@ -55,6 +64,8 @@ body {
 
   width: 100%;
   max-width: 330px;
+
+  margin: auto;
 
   background: linear-gradient(
     160deg,
@@ -135,17 +146,12 @@ body {
     inset 0 0 10px rgba(255, 0, 0, 0.12);
 }
 
-/* TITLE */
-
 .register-title {
   margin: 0;
-
   text-align: center;
-
   font-size: 20px;
   font-weight: 800;
   letter-spacing: 1px;
-
   color: #ff3535;
 
   text-shadow:
@@ -153,14 +159,10 @@ body {
     0 0 12px rgba(255, 0, 0, 0.25);
 }
 
-/* SUBTITLE */
-
 .register-subtitle {
   text-align: center;
-
   font-size: 12px;
   color: #888888;
-
   margin: 6px 0 14px;
 }
 
@@ -172,11 +174,13 @@ body {
 }
 
 .input-field {
+  display: block;
   width: 100%;
+  min-width: 0;
 
   padding: 11px 12px;
 
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 500;
 
   border-radius: 9px;
@@ -187,16 +191,18 @@ body {
 
   outline: none;
 
-  transition: all 0.25s ease;
-}
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
-/* PLACEHOLDER */
+  scroll-margin-top: 90px;
+  scroll-margin-bottom: 120px;
+
+  -webkit-appearance: none;
+  appearance: none;
+}
 
 .input-field::placeholder {
   color: #777777;
 }
-
-/* INPUT FOCUS */
 
 .input-field:focus {
   border-color: #ff3030;
@@ -214,9 +220,7 @@ body {
 .input-field:-webkit-autofill:hover,
 .input-field:-webkit-autofill:focus {
   -webkit-text-fill-color: #ffffff;
-
   box-shadow: 0 0 0 1000px #080808 inset;
-
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -224,21 +228,13 @@ body {
 
 .error-message {
   background: rgba(255, 0, 0, 0.09);
-
   border: 1px solid rgba(255, 50, 50, 0.55);
-
   color: #ffaaaa;
-
   font-size: 12px;
-
   padding: 9px;
-
   border-radius: 8px;
-
   margin-bottom: 12px;
-
   text-align: center;
-
   overflow-wrap: anywhere;
 }
 
@@ -246,25 +242,19 @@ body {
 
 .success-message {
   background: rgba(0, 180, 80, 0.09);
-
   border: 1px solid rgba(0, 220, 100, 0.4);
-
   color: #86efac;
-
   font-size: 12px;
-
   padding: 9px;
-
   border-radius: 8px;
-
   margin-bottom: 12px;
-
   text-align: center;
 }
 
 /* ================= REGISTER BUTTON ================= */
 
 .register-button {
+  display: block;
   width: 100%;
 
   padding: 11px;
@@ -284,22 +274,17 @@ body {
   );
 
   color: #ffffff;
-
   cursor: pointer;
 
   box-shadow:
     0 0 10px rgba(255, 0, 0, 0.35),
     0 0 18px rgba(255, 0, 0, 0.15);
 
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    filter 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .register-button:hover {
   transform: translateY(-2px);
-
   filter: brightness(1.15);
 
   box-shadow:
@@ -314,7 +299,6 @@ body {
 .register-button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-
   transform: none;
   box-shadow: none;
 }
@@ -323,19 +307,16 @@ body {
 
 .spinner {
   display: inline-block;
-
   width: 16px;
   height: 16px;
 
   border: 2px solid rgba(255, 255, 255, 0.25);
   border-radius: 50%;
-
   border-top-color: #ff3030;
 
   animation: registerSpin 0.8s linear infinite;
 
   margin-right: 8px;
-
   vertical-align: middle;
 }
 
@@ -345,28 +326,73 @@ body {
   }
 }
 
+/* ================= GOOGLE SIGN-IN ================= */
+
+.google-signin-section {
+  width: 100%;
+  margin-top: 17px;
+  text-align: center;
+}
+
+.google-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-bottom: 13px;
+
+  color: #777777;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.google-divider::before,
+.google-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.google-button-wrapper {
+  width: 100%;
+  min-height: 40px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  overflow: hidden;
+}
+
+.google-button-wrapper iframe {
+  max-width: 100%;
+}
+
+.google-loading {
+  color: #bbbbbb;
+  font-size: 12px;
+  margin-top: 9px;
+}
+
 /* ================= LOGIN FOOTER ================= */
 
 .login-link {
   margin-top: 15px;
-
   padding-top: 12px;
 
   border-top: 1px solid rgba(255, 255, 255, 0.07);
 
   text-align: center;
-
   font-size: 12px;
   color: #999999;
 }
 
 .login-btn {
   color: #ff4545;
-
   text-decoration: none;
   font-weight: 800;
-
-  transition: all 0.25s ease;
+  transition: color 0.25s ease;
 }
 
 .login-btn:hover {
@@ -377,9 +403,43 @@ body {
     0 0 10px rgba(255, 0, 0, 0.6);
 }
 
-/* ================= MOBILE RESPONSIVE ================= */
+/* ================= MOBILE KEYBOARD FIX ================= */
+
+@media (max-width: 600px) {
+  .register-wrapper {
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    align-items: flex-start;
+
+    padding: 18px 12px 35px;
+
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+
+  .register-container {
+    max-width: 350px;
+    margin: 0 auto;
+  }
+
+  .input-field {
+    font-size: 16px;
+  }
+
+  .input-field:focus {
+    scroll-margin-top: 35px;
+    scroll-margin-bottom: 140px;
+  }
+}
+
+/* ================= SMALL MOBILE ================= */
 
 @media (max-width: 360px) {
+  .register-wrapper {
+    padding: 12px 10px 30px;
+  }
+
   .register-container {
     max-width: 310px;
     padding: 17px 14px;
@@ -390,8 +450,7 @@ body {
   }
 
   .input-field {
-    padding: 10px;
-    font-size: 12px;
+    padding: 11px 10px;
   }
 
   .register-button {
@@ -402,6 +461,10 @@ body {
 /* ================= LARGE SCREEN ================= */
 
 @media (min-width: 768px) {
+  .register-wrapper {
+    align-items: center;
+  }
+
   .register-container {
     max-width: 350px;
     padding: 23px 21px;

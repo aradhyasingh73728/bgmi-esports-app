@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./Login.css";
 
 // ==========================================
@@ -13,7 +13,7 @@ const isLocalhost =
 
 const API_URL = isLocalhost
   ? "http://localhost:5001"
-  : import.meta.env.VITE_API_URL ||
+  : process.env.REACT_APP_API_URL ||
     "https://user-register-server-5001.onrender.com";
 
 // ==========================================
@@ -74,9 +74,7 @@ const getDeviceDetails = () => {
   let browserVersion = "Unknown";
   let deviceType = "Desktop";
 
-  // ----------------------------------------
   // OPERATING SYSTEM
-  // ----------------------------------------
 
   if (/Windows NT 10\.0/i.test(userAgent)) {
     operatingSystem = "Windows";
@@ -100,9 +98,9 @@ const getDeviceDetails = () => {
   } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
     operatingSystem = "iOS";
 
-    const iosMatch = userAgent.match(/OS\s([\d_]+)/i);
+    const iosMatch = userAgent.match(/OS\s([\d\_]+)/i);
     osVersion = iosMatch
-      ? iosMatch[1].replace(/_/g, ".")
+      ? iosMatch[1].replace(/\_/g, ".")
       : "Unknown";
 
     deviceName = /iPad/i.test(userAgent)
@@ -111,9 +109,9 @@ const getDeviceDetails = () => {
   } else if (/Mac OS X/i.test(userAgent)) {
     operatingSystem = "macOS";
 
-    const macMatch = userAgent.match(/Mac OS X\s([\d_]+)/i);
+    const macMatch = userAgent.match(/Mac OS X\s([\d\_]+)/i);
     osVersion = macMatch
-      ? macMatch[1].replace(/_/g, ".")
+      ? macMatch[1].replace(/\_/g, ".")
       : "Unknown";
 
     deviceName = "Mac";
@@ -123,23 +121,17 @@ const getDeviceDetails = () => {
     deviceName = "Linux Device";
   }
 
-  // ----------------------------------------
   // DEVICE TYPE
-  // ----------------------------------------
 
   if (/iPad|Tablet/i.test(userAgent)) {
     deviceType = "Tablet";
-  } else if (
-    /Mobile|Android|iPhone|iPod/i.test(userAgent)
-  ) {
+  } else if (/Mobile|Android|iPhone|iPod/i.test(userAgent)) {
     deviceType = "Mobile";
   } else {
     deviceType = "Desktop";
   }
 
-  // ----------------------------------------
   // BROWSER NAME AND VERSION
-  // ----------------------------------------
 
   let browserMatch = null;
 
@@ -167,9 +159,7 @@ const getDeviceDetails = () => {
     ? browserMatch[1]
     : "Unknown";
 
-  // ----------------------------------------
   // TIMEZONE
-  // ----------------------------------------
 
   let timezone = "Unknown";
 
@@ -180,10 +170,6 @@ const getDeviceDetails = () => {
   } catch (error) {
     timezone = "Unknown";
   }
-
-  // ----------------------------------------
-  // RETURN DEVICE INFORMATION
-  // ----------------------------------------
 
   return {
     installationId: getInstallationId(),
@@ -216,8 +202,12 @@ const Login = () => {
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
   const [error, setError] = useState("");
   const [showRegisteredMsg, setShowRegisteredMsg] = useState(false);
+
+  const googleButtonRef = useRef(null);
 
   // ==========================================
   // PAGE LOAD
@@ -271,7 +261,33 @@ const Login = () => {
   }, []);
 
   // ==========================================
-  // LOGIN
+  // COMMON SAVE USER SESSION
+  // ==========================================
+
+  const saveUserSession = (freshUser) => {
+    const userData = {
+      id: freshUser.id,
+      username: freshUser.username,
+      email: freshUser.email,
+      profile_id: freshUser.profile_id,
+      verified: Boolean(freshUser.verified),
+      balance: freshUser.balance || 0,
+      backend_token: freshUser.token || "",
+    };
+
+    localStorage.setItem(
+      "bgmi_user",
+      JSON.stringify(userData)
+    );
+
+    sessionStorage.removeItem("auto_login_email");
+    sessionStorage.removeItem("auto_login_password");
+
+    window.location.href = "/profile";
+  };
+
+  // ==========================================
+  // NORMAL EMAIL + PASSWORD LOGIN
   // ==========================================
 
   const handleLogin = async (e) => {
@@ -306,40 +322,160 @@ const Login = () => {
 
       if (!loginRes.ok || !serverData.success) {
         throw new Error(
-          serverData.error || "❌ Login failed!"
+          serverData.error || "Login failed. Please try again."
         );
       }
 
-      const freshUser = serverData.user;
-
-      const userData = {
-        id: freshUser.id,
-        username: freshUser.username,
-        email: freshUser.email,
-        profile_id: freshUser.profile_id,
-        verified: Boolean(freshUser.verified),
-        balance: freshUser.balance || 0,
-        backend_token: freshUser.token || "",
-      };
-
-      localStorage.setItem(
-        "bgmi_user",
-        JSON.stringify(userData)
-      );
-
-      sessionStorage.removeItem("auto_login_email");
-      sessionStorage.removeItem("auto_login_password");
-
-      window.location.href = "/profile";
+      saveUserSession(serverData.user);
 
     } catch (err) {
-      console.error("Login error:", err);
-      setError(err.message || "❌ Login failed!");
+      console.error("LOGIN ERROR:", err);
 
+      setError(
+        err.message || "Login failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
+
+  // ==========================================
+  // GOOGLE LOGIN
+  // ==========================================
+
+  const handleGoogleCredential = async (response) => {
+    setError("");
+    setGoogleLoading(true);
+
+    try {
+      if (!response?.credential) {
+        throw new Error("Google credential not received.");
+      }
+
+      const deviceDetails = getDeviceDetails();
+
+      console.log("GOOGLE LOGIN DEVICE INFO:", deviceDetails);
+
+      const res = await fetch(`${API_URL}/api/google-login`, {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          credential: response.credential,
+          ...deviceDetails,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(
+          data.error || "Google login failed. Please try again."
+        );
+      }
+
+      console.log("GOOGLE LOGIN SUCCESS:", data.user.profile_id);
+
+      saveUserSession(data.user);
+
+    } catch (err) {
+      console.error("GOOGLE LOGIN ERROR:", err);
+
+      setError(
+        err.message || "Google login failed. Please try again."
+      );
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  // ==========================================
+  // GOOGLE IDENTITY SERVICES
+  // ==========================================
+
+  useEffect(() => {
+    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
+    if (!clientId) {
+      console.error("VITE_GOOGLE_CLIENT_ID is missing.");
+      setError("Google Login configuration is missing.");
+      return;
+    }
+
+    let script = document.querySelector(
+      'script[src="https://accounts.google.com/gsi/client"]'
+    );
+
+    let createdScript = false;
+
+    const initializeGoogle = () => {
+      if (
+        !window.google?.accounts?.id ||
+        !googleButtonRef.current
+      ) {
+        return;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleCredential,
+      });
+
+      googleButtonRef.current.innerHTML = "";
+
+      window.google.accounts.id.renderButton(
+        googleButtonRef.current,
+        {
+          theme: "outline",
+          size: "large",
+          shape: "rectangular",
+          text: "continue_with",
+          width: 300,
+        }
+      );
+    };
+
+    const handleScriptError = () => {
+      setError(
+        "Could not load Google Login. Please try again."
+      );
+    };
+
+    if (script) {
+      if (window.google?.accounts?.id) {
+        initializeGoogle();
+      } else {
+        script.addEventListener("load", initializeGoogle);
+        script.addEventListener("error", handleScriptError);
+      }
+    } else {
+      script = document.createElement("script");
+
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+
+      script.onload = initializeGoogle;
+      script.onerror = handleScriptError;
+
+      document.head.appendChild(script);
+      createdScript = true;
+    }
+
+    return () => {
+      script?.removeEventListener("load", initializeGoogle);
+      script?.removeEventListener("error", handleScriptError);
+
+      // Keep the shared Google script available for other pages.
+      if (createdScript) {
+        script.onload = null;
+        script.onerror = null;
+      }
+    };
+  }, []);
 
   // ==========================================
   // LOGIN PAGE UI
@@ -363,7 +499,7 @@ const Login = () => {
 
         {showRegisteredMsg && (
           <div className="success-message">
-            ✅ Account created successfully! Login Now.
+            ✅ Account created successfully! Login now.
           </div>
         )}
 
@@ -422,13 +558,34 @@ const Login = () => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || googleLoading}
             className="login-button"
           >
             {loading ? "Logging In..." : "🚀 Login"}
           </button>
 
         </form>
+
+        {/* GOOGLE LOGIN */}
+
+        <div className="google-login-section">
+
+          <div className="google-login-divider">
+            OR
+          </div>
+
+          <div
+            ref={googleButtonRef}
+            className="google-login-button"
+          ></div>
+
+          {googleLoading && (
+            <p className="google-loading-message">
+              Google login processing...
+            </p>
+          )}
+
+        </div>
 
         {/* FOOTER */}
 

@@ -24,6 +24,7 @@ import DepositHistory from "./pages/DepositHistory";
 import Help from "./pages/Help";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
 
 import Deposit from "./pages/Deposit";
 import DepositQR from "./pages/DepositQR";
@@ -47,7 +48,8 @@ const MainLayout = ({ children }) => {
 
   const hideLayout =
     location.pathname === "/login" ||
-    location.pathname === "/register";
+    location.pathname === "/register" ||
+    location.pathname === "/forgot-password";
 
   if (hideLayout) {
     return children;
@@ -117,6 +119,12 @@ function App() {
             element={<Register />}
           />
 
+          {/* FORGOT PASSWORD */}
+          <Route
+            path="/forgot-password"
+            element={<ForgotPassword />}
+          />
+
           {/* ================================================
               PROTECTED ROUTES
               WITH FULL APP LAYOUT
@@ -170,10 +178,7 @@ function App() {
             }
           />
 
-          {/* ================================================
-              LIVE MATCHES & MATCH HISTORY
-          ================================================= */}
-
+          {/* LIVE MATCHES */}
           <Route
             path="/live-matches"
             element={

@@ -1,9 +1,9 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./Register.css";
 
 // ==========================================
-// API URL
+// API URL - CREATE REACT APP
 // ==========================================
 
 const isLocalhost =
@@ -13,8 +13,11 @@ const isLocalhost =
 
 const API_URL = isLocalhost
   ? "http://localhost:5001"
-  : import.meta.env.VITE_API_URL ||
+  : process.env.REACT_APP_API_URL ||
     "https://user-register-server-5001.onrender.com";
+
+const GOOGLE_CLIENT_ID =
+  process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 // ==========================================
 // DEVICE INSTALLATION ID
@@ -72,9 +75,7 @@ const getDeviceDetails = () => {
   let browserVersion = "Unknown";
   let deviceType = "Desktop";
 
-  // ----------------------------------------
   // OPERATING SYSTEM
-  // ----------------------------------------
 
   if (/Windows NT 10\.0/i.test(userAgent)) {
     operatingSystem = "Windows";
@@ -121,23 +122,17 @@ const getDeviceDetails = () => {
     deviceName = "Linux Device";
   }
 
-  // ----------------------------------------
   // DEVICE TYPE
-  // ----------------------------------------
 
   if (/iPad|Tablet/i.test(userAgent)) {
     deviceType = "Tablet";
-  } else if (
-    /Mobile|Android|iPhone|iPod/i.test(userAgent)
-  ) {
+  } else if (/Mobile|Android|iPhone|iPod/i.test(userAgent)) {
     deviceType = "Mobile";
   } else {
     deviceType = "Desktop";
   }
 
-  // ----------------------------------------
   // BROWSER NAME AND VERSION
-  // ----------------------------------------
 
   let browserMatch = null;
 
@@ -165,9 +160,7 @@ const getDeviceDetails = () => {
     ? browserMatch[1]
     : "Unknown";
 
-  // ----------------------------------------
-  // OTHER DEVICE INFORMATION
-  // ----------------------------------------
+  // TIMEZONE
 
   let timezone = "Unknown";
 
@@ -217,12 +210,189 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const googleButtonRef = useRef(null);
+
   // ==========================================
-  // REGISTER
+  // COMMON SAVE USER SESSION
+  // ==========================================
+
+  const saveUserSession = (freshUser) => {
+    const userData = {
+      id: freshUser.id,
+      username: freshUser.username,
+      email: freshUser.email,
+      profile_id: freshUser.profile_id,
+      verified: Boolean(freshUser.verified),
+      balance: freshUser.balance || 0,
+      backend_token: freshUser.token || "",
+    };
+
+    localStorage.setItem(
+      "bgmi_user",
+      JSON.stringify(userData)
+    );
+
+    sessionStorage.removeItem("auto_login_email");
+    sessionStorage.removeItem("auto_login_password");
+
+    window.location.href = "/profile";
+  };
+
+  // ==========================================
+  // GOOGLE LOGIN / REGISTER
+  // ==========================================
+
+  const handleGoogleCredential = async (response) => {
+    setError("");
+    setSuccess("");
+    setGoogleLoading(true);
+
+    try {
+      if (!response?.credential) {
+        throw new Error("Google credential not received.");
+      }
+
+      const deviceDetails = getDeviceDetails();
+
+      console.log(
+        "GOOGLE REGISTER DEVICE INFO:",
+        deviceDetails
+      );
+
+      const res = await fetch(`${API_URL}/api/google-login`, {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          credential: response.credential,
+          ...deviceDetails,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(
+          data.error || "Google registration failed."
+        );
+      }
+
+      console.log(
+        "GOOGLE REGISTER SUCCESS:",
+        data.user.profile_id
+      );
+
+      saveUserSession(data.user);
+
+    } catch (err) {
+      console.error("GOOGLE REGISTER ERROR:", err);
+
+      setError(
+        err.message || "Google registration failed."
+      );
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  // ==========================================
+  // GOOGLE IDENTITY SERVICES
+  // ==========================================
+
+  useEffect(() => {
+    if (otpSent) return;
+
+    if (!GOOGLE_CLIENT_ID) {
+      console.error(
+        "REACT_APP_GOOGLE_CLIENT_ID is missing."
+      );
+      return;
+    }
+
+    let script = document.querySelector(
+      'script[src="https://accounts.google.com/gsi/client"]'
+    );
+
+    let createdScript = false;
+
+    const initializeGoogle = () => {
+      if (
+        !window.google?.accounts?.id ||
+        !googleButtonRef.current
+      ) {
+        return;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredential,
+        auto_select: false,
+      });
+
+      googleButtonRef.current.innerHTML = "";
+
+      window.google.accounts.id.renderButton(
+        googleButtonRef.current,
+        {
+          theme: "outline",
+          size: "large",
+          shape: "rectangular",
+          text: "continue_with",
+          width: 280,
+        }
+      );
+    };
+
+    const handleScriptError = () => {
+      console.error("GOOGLE SCRIPT LOAD FAILED");
+
+      setError(
+        "Could not load Google Login. Please try again."
+      );
+    };
+
+    if (script) {
+      if (window.google?.accounts?.id) {
+        initializeGoogle();
+      } else {
+        script.addEventListener("load", initializeGoogle);
+        script.addEventListener("error", handleScriptError);
+      }
+    } else {
+      script = document.createElement("script");
+
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+
+      script.onload = initializeGoogle;
+      script.onerror = handleScriptError;
+
+      document.head.appendChild(script);
+      createdScript = true;
+    }
+
+    return () => {
+      script?.removeEventListener("load", initializeGoogle);
+      script?.removeEventListener("error", handleScriptError);
+
+      if (createdScript) {
+        script.onload = null;
+        script.onerror = null;
+      }
+    };
+  }, [otpSent]);
+
+  // ==========================================
+  // NORMAL REGISTRATION
   // ==========================================
 
   const handleRegister = async (e) => {
@@ -233,24 +403,26 @@ const Register = () => {
     setLoading(true);
 
     if (
-      !username ||
-      !email ||
+      !username.trim() ||
+      !email.trim() ||
       !password ||
       !confirmPassword
     ) {
-      setError("❌ Sab fields bharo!");
+      setError("❌ Please fill in all fields!");
       setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("❌ Passwords match nahi kar rahe!");
+      setError("❌ Passwords do not match!");
       setLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError("The password must be at least 6 characters long ⚠️");
+      setError(
+        "The password must be at least 6 characters long ⚠️"
+      );
       setLoading(false);
       return;
     }
@@ -267,13 +439,18 @@ const Register = () => {
         ...deviceDetails,
       };
 
-      console.log("REGISTER DEVICE INFO:", deviceDetails);
+      console.log(
+        "REGISTER DEVICE INFO:",
+        deviceDetails
+      );
 
       const res = await fetch(`${API_URL}/api/register`, {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
+
         body: JSON.stringify(payload),
       });
 
@@ -287,9 +464,13 @@ const Register = () => {
 
       setOtpSent(true);
       setSuccess("✅ OTP has been sent successfully.");
+
     } catch (err) {
       console.error("REGISTER ERROR:", err);
-      setError(err.message || "Registration failed");
+
+      setError(
+        err.message || "Registration failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -307,7 +488,7 @@ const Register = () => {
     setOtpLoading(true);
 
     if (!otp || otp.length !== 6) {
-      setError("❌ 6-digit OTP enter karo!");
+      setError("❌ Please enter a 6-digit OTP!");
       setOtpLoading(false);
       return;
     }
@@ -331,9 +512,11 @@ const Register = () => {
         `${API_URL}/api/verify-otp`,
         {
           method: "POST",
+
           headers: {
             "Content-Type": "application/json",
           },
+
           body: JSON.stringify(payload),
         }
       );
@@ -372,8 +555,12 @@ const Register = () => {
       setTimeout(() => {
         window.location.href = "/profile";
       }, 1000);
+
     } catch (err) {
-      console.error("OTP VERIFICATION ERROR:", err);
+      console.error(
+        "OTP VERIFICATION ERROR:",
+        err
+      );
 
       setError(
         err.message || "OTP verification failed"
@@ -401,15 +588,20 @@ const Register = () => {
         ...deviceDetails,
       };
 
-      console.log("RESEND OTP DEVICE INFO:", deviceDetails);
+      console.log(
+        "RESEND OTP DEVICE INFO:",
+        deviceDetails
+      );
 
       const res = await fetch(
         `${API_URL}/api/resend-otp`,
         {
           method: "POST",
+
           headers: {
             "Content-Type": "application/json",
           },
+
           body: JSON.stringify(payload),
         }
       );
@@ -425,9 +617,11 @@ const Register = () => {
       }
 
       setOtp("");
+
       setSuccess(
-        "✅ New OTP email par bhej diya gaya hai."
+        "✅ A new OTP has been sent to your email."
       );
+
     } catch (err) {
       console.error("RESEND OTP ERROR:", err);
 
@@ -440,7 +634,7 @@ const Register = () => {
   };
 
   // ==========================================
-  // UI
+  // REGISTER PAGE UI
   // ==========================================
 
   return (
@@ -469,6 +663,8 @@ const Register = () => {
               </div>
             )}
 
+            {/* NORMAL REGISTRATION */}
+
             <form onSubmit={handleRegister}>
               <div className="input-group">
                 <input
@@ -479,6 +675,7 @@ const Register = () => {
                   onChange={(e) =>
                     setUsername(e.target.value)
                   }
+                  autoComplete="username"
                   required
                 />
               </div>
@@ -492,6 +689,7 @@ const Register = () => {
                   onChange={(e) =>
                     setEmail(e.target.value)
                   }
+                  autoComplete="email"
                   required
                 />
               </div>
@@ -505,6 +703,7 @@ const Register = () => {
                   onChange={(e) =>
                     setPassword(e.target.value)
                   }
+                  autoComplete="new-password"
                   required
                 />
               </div>
@@ -518,6 +717,7 @@ const Register = () => {
                   onChange={(e) =>
                     setConfirmPassword(e.target.value)
                   }
+                  autoComplete="new-password"
                   required
                 />
               </div>
@@ -525,7 +725,7 @@ const Register = () => {
               <button
                 className="register-button"
                 type="submit"
-                disabled={loading}
+                disabled={loading || googleLoading}
               >
                 {loading
                   ? "Sending OTP..."
@@ -533,9 +733,33 @@ const Register = () => {
               </button>
             </form>
 
+            {/* GOOGLE REGISTRATION */}
+
+            <div className="google-register-section">
+              <div className="google-register-divider">
+                OR
+              </div>
+
+              <div
+                ref={googleButtonRef}
+                className="google-register-button"
+              />
+
+              {googleLoading && (
+                <p className="google-loading-message">
+                  Google registration processing...
+                </p>
+              )}
+            </div>
+
+            {/* LOGIN LINK */}
+
             <div className="login-link">
               Already registered?{" "}
-              <a href="/login" className="login-btn">
+              <a
+                href="/login"
+                className="login-btn"
+              >
                 Login
               </a>
             </div>
@@ -582,6 +806,7 @@ const Register = () => {
                         .slice(0, 6)
                     )
                   }
+                  autoComplete="one-time-code"
                   required
                 />
               </div>
@@ -615,7 +840,8 @@ const Register = () => {
             </button>
 
             <div className="login-link">
-              Wrong email?{" "}
+              Entered the wrong email?{" "}
+
               <button
                 type="button"
                 onClick={() => {

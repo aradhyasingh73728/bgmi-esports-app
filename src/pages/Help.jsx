@@ -132,7 +132,7 @@ const Help = () => {
 
         if (!response.ok || !result.success) {
           throw new Error(
-            result.error || "Support chat load nahi ho paya."
+            result.error || "Unable to load support chat."
           );
         }
 
@@ -144,7 +144,7 @@ const Help = () => {
 
         if (!cancelled) {
           setError(
-            err.message || "Support chat connect nahi ho paya."
+            err.message || "Unable to connect to support chat."
           );
         }
       } finally {
@@ -182,7 +182,7 @@ const Help = () => {
 
         if (!response.ok || !result.success) {
           throw new Error(
-            result.error || "Messages load nahi ho paye."
+            result.error || "Unable to load messages."
           );
         }
 
@@ -193,7 +193,7 @@ const Help = () => {
         console.error("Message loading error:", err);
 
         if (!cancelled) {
-          setError(err.message || "Messages load nahi ho paye.");
+          setError(err.message || "Unable to load messages.");
         }
       }
     };
@@ -334,7 +334,7 @@ const Help = () => {
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error || "Message send nahi ho paya."
+          result.error || "Unable to send message."
         );
       }
 
@@ -352,7 +352,7 @@ const Help = () => {
       inputRef.current?.focus();
     } catch (err) {
       console.error("Send message error:", err);
-      setError(err.message || "Message send nahi ho paya.");
+      setError(err.message || "Unable to send message.");
     } finally {
       setSending(false);
     }
@@ -370,13 +370,13 @@ const Help = () => {
     }
 
     if (!file.type.startsWith("image/")) {
-      setError("Sirf image file upload kar sakte hain.");
+      setError("Only image files can be uploaded.");
       event.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setError("Image size 5MB se kam honi chahiye.");
+      setError("Image size must be less than 5MB.");
       event.target.value = "";
       return;
     }
@@ -421,7 +421,7 @@ const Help = () => {
       const imageUrl = publicUrlData?.publicUrl;
 
       if (!imageUrl) {
-        throw new Error("Image URL generate nahi ho paya.");
+        throw new Error("Unable to generate image URL.");
       }
 
       /* SEND IMAGE MESSAGE TO SUPPORT SERVER */
@@ -446,7 +446,7 @@ const Help = () => {
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error || "Image send nahi ho payi."
+          result.error || "Unable to send image."
         );
       }
 
@@ -463,7 +463,7 @@ const Help = () => {
       console.log("✅ IMAGE MESSAGE SENT");
     } catch (err) {
       console.error("Image upload error:", err);
-      setError(err.message || "Image upload nahi ho payi.");
+      setError(err.message || "Image upload failed.");
     } finally {
       setSending(false);
       event.target.value = "";
@@ -502,8 +502,7 @@ const Help = () => {
               <div className="support-welcome-icon">🔐</div>
               <h3>Login Required</h3>
               <p>
-                Support chat use karne ke liye pehle apne
-                account mein login karein.
+                Please log in to your account to use support chat.
               </p>
 
               {error && (
