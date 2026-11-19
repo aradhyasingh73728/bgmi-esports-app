@@ -1,5 +1,11 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
+
 import "./Login.css";
 
 // ==========================================
@@ -98,9 +104,10 @@ const getDeviceDetails = () => {
   } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
     operatingSystem = "iOS";
 
-    const iosMatch = userAgent.match(/OS\s([\d\_]+)/i);
+    const iosMatch = userAgent.match(/OS\s([\d_]+)/i);
+
     osVersion = iosMatch
-      ? iosMatch[1].replace(/\_/g, ".")
+      ? iosMatch[1].replace(/_/g, ".")
       : "Unknown";
 
     deviceName = /iPad/i.test(userAgent)
@@ -109,9 +116,10 @@ const getDeviceDetails = () => {
   } else if (/Mac OS X/i.test(userAgent)) {
     operatingSystem = "macOS";
 
-    const macMatch = userAgent.match(/Mac OS X\s([\d\_]+)/i);
+    const macMatch = userAgent.match(/Mac OS X\s([\d_]+)/i);
+
     osVersion = macMatch
-      ? macMatch[1].replace(/\_/g, ".")
+      ? macMatch[1].replace(/_/g, ".")
       : "Unknown";
 
     deviceName = "Mac";
@@ -264,7 +272,7 @@ const Login = () => {
   // COMMON SAVE USER SESSION
   // ==========================================
 
-  const saveUserSession = (freshUser) => {
+  const saveUserSession = useCallback((freshUser) => {
     const userData = {
       id: freshUser.id,
       username: freshUser.username,
@@ -284,7 +292,7 @@ const Login = () => {
     sessionStorage.removeItem("auto_login_password");
 
     window.location.href = "/profile";
-  };
+  }, []);
 
   // ==========================================
   // NORMAL EMAIL + PASSWORD LOGIN
@@ -343,7 +351,7 @@ const Login = () => {
   // GOOGLE LOGIN
   // ==========================================
 
-  const handleGoogleCredential = async (response) => {
+  const handleGoogleCredential = useCallback(async (response) => {
     setError("");
     setGoogleLoading(true);
 
@@ -390,7 +398,7 @@ const Login = () => {
     } finally {
       setGoogleLoading(false);
     }
-  };
+  }, [saveUserSession]);
 
   // ==========================================
   // GOOGLE IDENTITY SERVICES
@@ -400,7 +408,7 @@ const Login = () => {
     const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
     if (!clientId) {
-      console.error("VITE_GOOGLE_CLIENT_ID is missing.");
+      console.error("REACT_APP_GOOGLE_CLIENT_ID is missing.");
       setError("Google Login configuration is missing.");
       return;
     }
@@ -475,7 +483,7 @@ const Login = () => {
         script.onerror = null;
       }
     };
-  }, []);
+  }, [handleGoogleCredential]);
 
   // ==========================================
   // LOGIN PAGE UI

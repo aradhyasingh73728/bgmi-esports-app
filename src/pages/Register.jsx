@@ -1,5 +1,11 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
+
 import "./Register.css";
 
 // ==========================================
@@ -100,6 +106,7 @@ const getDeviceDetails = () => {
     operatingSystem = "iOS";
 
     const iosMatch = userAgent.match(/OS\s([\d_]+)/i);
+
     osVersion = iosMatch
       ? iosMatch[1].replace(/_/g, ".")
       : "Unknown";
@@ -111,6 +118,7 @@ const getDeviceDetails = () => {
     operatingSystem = "macOS";
 
     const macMatch = userAgent.match(/Mac OS X\s([\d_]+)/i);
+
     osVersion = macMatch
       ? macMatch[1].replace(/_/g, ".")
       : "Unknown";
@@ -221,7 +229,7 @@ const Register = () => {
   // COMMON SAVE USER SESSION
   // ==========================================
 
-  const saveUserSession = (freshUser) => {
+  const saveUserSession = useCallback((freshUser) => {
     const userData = {
       id: freshUser.id,
       username: freshUser.username,
@@ -241,13 +249,13 @@ const Register = () => {
     sessionStorage.removeItem("auto_login_password");
 
     window.location.href = "/profile";
-  };
+  }, []);
 
   // ==========================================
   // GOOGLE LOGIN / REGISTER
   // ==========================================
 
-  const handleGoogleCredential = async (response) => {
+  const handleGoogleCredential = useCallback(async (response) => {
     setError("");
     setSuccess("");
     setGoogleLoading(true);
@@ -301,7 +309,7 @@ const Register = () => {
     } finally {
       setGoogleLoading(false);
     }
-  };
+  }, [saveUserSession]);
 
   // ==========================================
   // GOOGLE IDENTITY SERVICES
@@ -389,7 +397,7 @@ const Register = () => {
         script.onerror = null;
       }
     };
-  }, [otpSent]);
+  }, [otpSent, handleGoogleCredential]);
 
   // ==========================================
   // NORMAL REGISTRATION
