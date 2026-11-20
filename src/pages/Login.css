@@ -1,7 +1,7 @@
-
 /* =====================================================
-   BGMI ESPORTS - PREMIUM BLACK & RED LOGIN
-   Compact Mobile Design | Gaming Neon Theme
+   BGMI ESPORTS - PREMIUM LOGIN PAGE
+   BLACK & RED GAMING THEME
+   Mobile Centered Fit + Keyboard Scroll Fix + Google Login
 ===================================================== */
 
 *,
@@ -11,30 +11,50 @@
   font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-/* ================= BODY ================= */
-
 html,
-body,
-#root {
-  min-height: 100%;
+body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+#root {
+  width: 100%;
+  min-height: 100dvh;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   background: #000000;
   color: #ffffff;
+  overflow-x: hidden;
 }
 
 /* ================= CENTER WRAPPER ================= */
+/* min-height (not height): the page scrolls when content is taller,
+   and the card stays centered when content is shorter */
 
 .login-wrapper {
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
+
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 12px;
+
+  padding:
+    max(16px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
 
   background:
     radial-gradient(
@@ -43,14 +63,20 @@ body {
       transparent 45%
     ),
     #000000;
+
+  overflow-x: hidden;
 }
 
 /* ================= LOGIN CARD ================= */
 
 .login-container {
   position: relative;
+
   width: 100%;
-  max-width: 330px;
+  max-width: 360px;
+
+  /* auto margin = safe centering, top never gets cut */
+  margin: auto;
 
   background: linear-gradient(
     160deg,
@@ -74,13 +100,15 @@ body {
   overflow: hidden;
 }
 
-/* TOP RED LINE */
+/* TOP NEON LINE */
 
 .login-container::before {
   content: "";
+
   position: absolute;
   top: 0;
   left: 15%;
+
   width: 70%;
   height: 2px;
 
@@ -131,12 +159,10 @@ body {
 
 .login-title {
   margin: 0;
-
   text-align: center;
   font-size: 20px;
   font-weight: 800;
   letter-spacing: 1px;
-
   color: #ff3535;
 
   text-shadow:
@@ -144,25 +170,28 @@ body {
     0 0 12px rgba(255, 0, 0, 0.25);
 }
 
-.login-subtitle {
-  text-align: center;
-  font-size: 12px;
-  color: #888888;
-  margin: 6px 0 14px;
+/* ================= FORM ================= */
+
+.login-form {
+  width: 100%;
 }
 
 /* ================= INPUT GROUP ================= */
 
 .input-group {
-  margin-bottom: 11px;
   width: 100%;
+  margin-bottom: 11px;
 }
 
 .input-field {
+  display: block;
   width: 100%;
+  min-width: 0;
+
   padding: 11px 12px;
 
-  font-size: 13px;
+  /* 16px = iPhone will not zoom */
+  font-size: 16px;
   font-weight: 500;
 
   border-radius: 9px;
@@ -172,7 +201,14 @@ body {
   color: #ffffff;
 
   outline: none;
-  transition: all 0.25s ease;
+
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  scroll-margin-top: 90px;
+  scroll-margin-bottom: 120px;
+
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .input-field::placeholder {
@@ -189,6 +225,8 @@ body {
   background: #100707;
 }
 
+/* AUTOFILL */
+
 .input-field:-webkit-autofill,
 .input-field:-webkit-autofill:hover,
 .input-field:-webkit-autofill:focus {
@@ -200,50 +238,35 @@ body {
 /* ================= FORGOT PASSWORD ================= */
 
 .forgot-password-link {
-  width: 100%;
-
-  display: flex;
-  justify-content: flex-end;
-
-  margin-top: -3px;
-  margin-bottom: 14px;
+  text-align: right;
+  margin: -2px 0 13px;
 }
 
 .forgot-password-link a {
-  color: #ff4545;
-
+  color: #ff6b6b;
   font-size: 12px;
-  font-weight: 700;
-
+  font-weight: 600;
   text-decoration: none;
-  letter-spacing: 0.3px;
-
-  transition: all 0.25s ease;
+  transition: color 0.25s ease, text-shadow 0.25s ease;
 }
 
 .forgot-password-link a:hover {
   color: #ffffff;
-
   text-shadow:
     0 0 5px #ff2222,
-    0 0 10px rgba(255, 0, 0, 0.7);
+    0 0 10px rgba(255, 0, 0, 0.6);
 }
 
 /* ================= ERROR MESSAGE ================= */
 
 .error-message {
   background: rgba(255, 0, 0, 0.09);
-
   border: 1px solid rgba(255, 50, 50, 0.55);
-
   color: #ffaaaa;
-
   font-size: 12px;
   padding: 9px;
-
   border-radius: 8px;
   margin-bottom: 12px;
-
   text-align: center;
   overflow-wrap: anywhere;
 }
@@ -252,24 +275,21 @@ body {
 
 .success-message {
   background: rgba(0, 180, 80, 0.09);
-
   border: 1px solid rgba(0, 220, 100, 0.4);
-
   color: #86efac;
-
   font-size: 12px;
   padding: 9px;
-
   border-radius: 8px;
   margin-bottom: 12px;
-
   text-align: center;
 }
 
 /* ================= LOGIN BUTTON ================= */
 
 .login-button {
+  display: block;
   width: 100%;
+
   padding: 11px;
 
   font-size: 14px;
@@ -287,22 +307,17 @@ body {
   );
 
   color: #ffffff;
-
   cursor: pointer;
 
   box-shadow:
     0 0 10px rgba(255, 0, 0, 0.35),
     0 0 18px rgba(255, 0, 0, 0.15);
 
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    filter 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .login-button:hover {
   transform: translateY(-2px);
-
   filter: brightness(1.15);
 
   box-shadow:
@@ -321,57 +336,145 @@ body {
   box-shadow: none;
 }
 
-/* ================= SPINNER ================= */
+/* ================= GOOGLE LOGIN (PREMIUM RED GAMING) ================= */
 
-.spinner {
-  display: inline-block;
-
-  width: 16px;
-  height: 16px;
-
-  border: 2px solid rgba(255, 255, 255, 0.25);
-  border-radius: 50%;
-
-  border-top-color: #ff3030;
-
-  animation: loginSpin 0.8s linear infinite;
-
-  margin-right: 8px;
-  vertical-align: middle;
+.google-login-section {
+  width: 100%;
+  margin-top: 17px;
+  text-align: center;
 }
 
-@keyframes loginSpin {
-  to {
-    transform: rotate(360deg);
-  }
+.google-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-bottom: 13px;
+
+  color: #ff9999;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+
+  text-shadow: 0 0 8px rgba(255, 50, 50, 0.4);
+}
+
+.google-login-divider::before,
+.google-login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 50, 50, 0.45),
+    transparent
+  );
+}
+
+.google-login-button {
+  width: 100%;
+  height: 50px;
+
+  background: linear-gradient(
+    135deg,
+    #1a0505,
+    #2b0808
+  );
+
+  border: 1px solid #ff2020;
+  border-radius: 10px;
+
+  box-shadow:
+    0 0 15px rgba(255, 0, 0, 0.35),
+    0 0 25px rgba(255, 0, 0, 0.15),
+    inset 0 0 8px rgba(255, 30, 30, 0.1);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+
+  cursor: pointer;
+  overflow: hidden;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    filter 0.2s ease;
+}
+
+.google-login-button:hover {
+  transform: translateY(-2px);
+  border-color: #ff4545;
+  box-shadow:
+    0 0 22px rgba(255, 0, 0, 0.50),
+    0 0 35px rgba(255, 0, 0, 0.25),
+    inset 0 0 12px rgba(255, 50, 50, 0.15);
+  filter: brightness(1.15);
+}
+
+.google-login-button:active {
+  transform: scale(0.97);
+}
+
+.google-login-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Google icon keeps its own colors */
+.google-login-button .google-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+
+  transition: transform 0.2s ease;
+}
+
+.google-login-button:hover .google-icon {
+  transform: scale(1.1);
+}
+
+.google-login-button span {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+
+  white-space: nowrap;
+}
+
+.google-login-button:focus-visible {
+  outline: 2px solid #ff2020;
+  outline-offset: 2px;
 }
 
 /* ================= FOOTER ================= */
 
 .login-footer {
   margin-top: 15px;
+  padding-top: 12px;
 
   border-top: 1px solid rgba(255, 255, 255, 0.07);
 
-  padding-top: 12px;
+  text-align: center;
+  font-size: 12px;
+  color: #999999;
 }
 
 .register-link {
-  text-align: center;
-
-  font-size: 12px;
-  color: #999999;
-
   margin: 0;
 }
 
 .register-btn {
   color: #ff4545;
-
   text-decoration: none;
   font-weight: 800;
-
-  transition: all 0.25s ease;
+  transition: color 0.25s ease;
 }
 
 .register-btn:hover {
@@ -382,41 +485,45 @@ body {
     0 0 10px rgba(255, 0, 0, 0.6);
 }
 
-/* ================= DEBUG BUTTON ================= */
+/* ================= MOBILE ================= */
+/* Card stays centered. When the keyboard opens the viewport shrinks,
+   margin:auto keeps the top from being cut and the page scrolls. */
 
-.debug-button {
-  width: 100%;
-  padding: 8px;
+@media (max-width: 600px) {
+  .login-wrapper {
+    align-items: center;
+    padding:
+      max(14px, env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right))
+      max(14px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
+  }
 
-  font-size: 12px;
+  .login-container {
+    max-width: 100%;
+    width: min(100%, 360px);
+    margin: auto;
+  }
 
-  background: rgba(255, 150, 0, 0.08);
+  .input-field {
+    font-size: 16px;
+  }
 
-  border: 1px solid rgba(255, 150, 0, 0.5);
-  border-radius: 8px;
-
-  color: #ffbd55;
-  font-weight: 600;
-
-  cursor: pointer;
-  transition: all 0.2s;
-
-  margin-top: 8px;
+  .input-field:focus {
+    scroll-margin-top: 35px;
+    scroll-margin-bottom: 140px;
+  }
 }
 
-.debug-button:hover {
-  background: rgba(255, 150, 0, 0.16);
-
-  box-shadow: 0 0 8px rgba(255, 150, 0, 0.3);
-
-  transform: scale(1.02);
-}
-
-/* ================= MOBILE RESPONSIVE ================= */
+/* ================= SMALL MOBILE ================= */
 
 @media (max-width: 360px) {
+  .login-wrapper {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
   .login-container {
-    max-width: 310px;
     padding: 17px 14px;
   }
 
@@ -425,8 +532,7 @@ body {
   }
 
   .input-field {
-    padding: 10px;
-    font-size: 12px;
+    padding: 11px 10px;
   }
 
   .login-button {
@@ -434,11 +540,35 @@ body {
   }
 }
 
+/* ================= SHORT SCREENS (landscape / keyboard open) ================= */
+
+@media (max-height: 560px) {
+  .login-wrapper {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .login-header {
+    margin-bottom: 10px;
+  }
+
+  .bgmi-logo {
+    width: 40px;
+    height: 40px;
+    font-size: 19px;
+    margin-bottom: 6px;
+  }
+}
+
 /* ================= LARGE SCREEN ================= */
 
 @media (min-width: 768px) {
+  .login-wrapper {
+    align-items: center;
+  }
+
   .login-container {
-    max-width: 350px;
+    max-width: 360px;
     padding: 23px 21px;
   }
 }

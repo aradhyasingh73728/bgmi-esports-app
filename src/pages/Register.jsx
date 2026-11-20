@@ -1,4 +1,3 @@
-
 import React, {
   useState,
   useEffect,
@@ -253,6 +252,8 @@ const Register = () => {
 
   // ==========================================
   // GOOGLE LOGIN / REGISTER
+  // The real Google credential arrives here
+  // (through the initialize() callback below).
   // ==========================================
 
   const handleGoogleCredential = useCallback(async (response) => {
@@ -279,8 +280,11 @@ const Register = () => {
           "Content-Type": "application/json",
         },
 
+        // mode "register" makes the server return ACCOUNT_EXISTS
+        // when this Gmail is already registered
         body: JSON.stringify({
           credential: response.credential,
+          mode: "register",
           ...deviceDetails,
         }),
       });
@@ -288,6 +292,12 @@ const Register = () => {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
+        // Account already exists: show a short message in the UI (no browser alert)
+        if (data.code === "ACCOUNT_EXISTS") {
+          setError("Already registered with this Gmail. Please login.");
+          return;
+        }
+
         throw new Error(
           data.error || "Google registration failed."
         );
@@ -310,6 +320,49 @@ const Register = () => {
       setGoogleLoading(false);
     }
   }, [saveUserSession]);
+
+  // ==========================================
+  // CUSTOM GOOGLE SIGN-UP BUTTON HANDLER
+  // ==========================================
+
+  const handleCustomGoogleSignUp = useCallback(() => {
+    if (!window.google?.accounts?.id) {
+      setError("Google Sign-Up is not ready. Please try again.");
+      return;
+    }
+
+    setGoogleLoading(true);
+    setError("");
+    setSuccess("");
+
+    // NOTE: the real credential arrives in the initialize() callback
+    // (handleGoogleCredential). This callback only reports the popup state.
+    window.google.accounts.id.prompt((notification) => {
+      // Popup is open: keep waiting
+      if (notification.isDisplayed?.()) return;
+
+      // Popup closed
+      if (notification.isDismissedMoment?.()) {
+        // A credential was returned: handleGoogleCredential handles it
+        if (notification.getDismissedReason?.() === "credential_returned") {
+          return;
+        }
+
+        // User closed the popup: just stop loading, no error
+        setGoogleLoading(false);
+        return;
+      }
+
+      // Popup could not open or was skipped
+      if (
+        notification.isNotDisplayed?.() ||
+        notification.isSkippedMoment?.()
+      ) {
+        setGoogleLoading(false);
+        setError("Google popup could not open. Please try again.");
+      }
+    });
+  }, []);
 
   // ==========================================
   // GOOGLE IDENTITY SERVICES
@@ -344,19 +397,6 @@ const Register = () => {
         callback: handleGoogleCredential,
         auto_select: false,
       });
-
-      googleButtonRef.current.innerHTML = "";
-
-      window.google.accounts.id.renderButton(
-        googleButtonRef.current,
-        {
-          theme: "outline",
-          size: "large",
-          shape: "rectangular",
-          text: "continue_with",
-          width: 280,
-        }
-      );
     };
 
     const handleScriptError = () => {
@@ -748,10 +788,35 @@ const Register = () => {
                 OR
               </div>
 
-              <div
+              <button
+                type="button"
                 ref={googleButtonRef}
                 className="google-register-button"
-              />
+                aria-label="Sign up with Google"
+                disabled={googleLoading}
+                onClick={handleCustomGoogleSignUp}
+              >
+                <svg className="google-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <path
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"
+                    fill="#4285F4"
+                  />
+                  <path
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.85A11 11 0 0 0 12 23z"
+                    fill="#34A853"
+                  />
+                  <path
+                    d="M5.84 14.09A6.6 6.6 0 0 1 5.5 12c0-.73.13-1.44.36-2.11V7.04H2.16A11 11 0 0 0 1 12c0 1.78.43 3.46 1.16 4.96l3.68-2.87z"
+                    fill="#FBBC05"
+                  />
+                  <path
+                    d="M12 5.38c1.62 0 3.08.56 4.23 1.66l3.17-3.17C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.16 7.04l3.68 2.87C6.71 7.3 9.14 5.38 12 5.38z"
+                    fill="#EA4335"
+                  />
+                </svg>
+
+                <span>Sign up with Google</span>
+              </button>
 
               {googleLoading && (
                 <p className="google-loading-message">

@@ -1,8 +1,18 @@
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
+
 import { useSearchParams } from "react-router-dom";
 import TournamentCard from "../components/TournamentCard";
 import "./Tournaments.css";
+
+// HOME PAGE BACKGROUND IMAGES
+import homeDesktop from "../assets/bg/home-desktop.webp";
+import homeMobile from "../assets/bg/home-mobile.webp";
 
 // ============================================================
 // API CONFIGURATION
@@ -14,7 +24,6 @@ const isLocalhost =
   window.location.hostname === "::1" ||
   window.location.hostname === "[::1]";
 
-// Tournament Management Server - Port 5005
 const TOURNAMENT_API = (
   isLocalhost
     ? "http://localhost:5005"
@@ -23,7 +32,7 @@ const TOURNAMENT_API = (
 ).replace(/\/+$/, "");
 
 // ============================================================
-// HELPERS
+// COMMON HELPERS
 // ============================================================
 
 const getJson = async (response) => {
@@ -39,26 +48,54 @@ const getJson = async (response) => {
 
   if (!response.ok) {
     throw new Error(
-      data.message || data.error || `Server error: ${response.status}`
+      data.message ||
+      data.error ||
+      `Server error: ${response.status}`
     );
   }
 
   return data;
 };
 
-// Convert API response into the format expected by TournamentCard
+const getTournamentList = (data) => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.tournaments)) return data.tournaments;
+  if (Array.isArray(data.data)) return data.data;
+
+  return [];
+};
+
+// ============================================================
+// NORMALIZE TOURNAMENT
+// ============================================================
+
 const normalizeTournament = (t) => {
-  const entryFee = Number(t.entryFee ?? t.entry_fee ?? 0);
-  const prizePool = Number(t.prizePool ?? t.prize_pool ?? 0);
-  const perKill = Number(t.perKill ?? t.per_kill ?? 0);
+  const entryFee = Number(
+    t.entryFee ?? t.entry_fee ?? 0
+  );
+
+  const prizePool = Number(
+    t.prizePool ?? t.prize_pool ?? 0
+  );
+
+  const perKill = Number(
+    t.perKill ?? t.per_kill ?? 0
+  );
 
   const totalSlots = Number(
-    t.totalSlots ?? t.slots ?? t.maxSlots ?? 0
+    t.totalSlots ??
+    t.slots ??
+    t.maxSlots ??
+    0
   );
 
-  const joinedPlayers = Number(
-    t.joinedPlayers ?? t.registered ?? 0
-  );
+  const joinedPlayers = Array.isArray(t.joinedPlayers)
+    ? t.joinedPlayers.length
+    : Number(
+        t.joinedPlayers ??
+        t.registered ??
+        0
+      );
 
   return {
     ...t,
@@ -66,10 +103,15 @@ const normalizeTournament = (t) => {
     id: t.id || t.tournament_id,
     tournament_id: t.tournament_id || t.id,
 
-    name: t.name || t.tournament_name || "Untitled Tournament",
+    name:
+      t.name ||
+      t.tournament_name ||
+      "Untitled Tournament",
 
     tournament_name:
-      t.tournament_name || t.name || "Untitled Tournament",
+      t.tournament_name ||
+      t.name ||
+      "Untitled Tournament",
 
     mode: t.mode || t.game_mode || "",
     game_mode: t.game_mode || t.mode || "",
@@ -77,7 +119,12 @@ const normalizeTournament = (t) => {
     type: t.type || t.match_type || "",
     match_type: t.match_type || t.type || "",
 
-    map: t.map || "Erangel",
+    map:
+      t.map ||
+      t.map_name ||
+      t.tournament_map ||
+      t.mapName ||
+      "Erangel",
 
     date: t.date || "",
     time: t.time || "",
@@ -99,7 +146,6 @@ const normalizeTournament = (t) => {
     registered: joinedPlayers,
 
     description: t.description || "",
-
     rules: t.rules || t.description || "",
 
     rulesShort:
@@ -112,10 +158,15 @@ const normalizeTournament = (t) => {
     image: t.image || t.image_url || "",
     image_url: t.image_url || t.image || "",
 
-    status: t.status || t.tournament_status || "Upcoming",
+    status:
+      t.status ||
+      t.tournament_status ||
+      "Upcoming",
 
     tournament_status:
-      t.tournament_status || t.status || "Upcoming",
+      t.tournament_status ||
+      t.status ||
+      "Upcoming",
 
     published: t.published,
     is_visible: t.is_visible,
@@ -123,6 +174,78 @@ const normalizeTournament = (t) => {
 
     created_at: t.created_at || null,
   };
+};
+
+// ============================================================
+// CATEGORY HELPERS
+// SAME LOGIC AS HOME PAGE
+// ============================================================
+
+const slugify = (value) =>
+  String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+const getTournamentCategories = (t) => {
+  const categories = [];
+
+  // MAP CATEGORY
+
+  const mapName = String(
+    t.map ||
+    t.map_name ||
+    t.tournament_map ||
+    t.mapName ||
+    ""
+  ).trim();
+
+  if (mapName) {
+    categories.push({
+      value: `map:${slugify(mapName)}`,
+      label: mapName,
+      type: "map",
+    });
+  }
+
+  // TDM / MATCH CATEGORY
+
+  const gameMode = String(
+    t.game_mode || t.mode || ""
+  ).trim();
+
+  const matchType = String(
+    t.match_type || t.type || ""
+  ).trim();
+
+  const combined = `${gameMode} ${matchType}`;
+
+  const tdmMatch = combined.match(
+    /\b(1v1|2v2|4v4)\b/i
+  );
+
+  const isTDM =
+    /tdm/i.test(combined) ||
+    Boolean(tdmMatch);
+
+  if (isTDM) {
+    const matchSize = tdmMatch
+      ? tdmMatch[1].toUpperCase()
+      : "";
+
+    const label = matchSize
+      ? `TDM ${matchSize}`
+      : "TDM";
+
+    categories.push({
+      value: `mode:${slugify(label)}`,
+      label,
+      type: "mode",
+    });
+  }
+
+  return categories;
 };
 
 // ============================================================
@@ -136,51 +259,25 @@ const Tournaments = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Read mode from URL
-  const rawMode = searchParams.get("mode") || "all";
-  const mode = rawMode.toLowerCase();
+  // ==========================================================
+  // READ URL FILTER
+  // ==========================================================
 
-  // String normalization
-  const normalize = (str = "") =>
-    String(str).toLowerCase().replace(/\s+/g, "");
+  const category = (
+    searchParams.get("category") || ""
+  ).trim().toLowerCase();
 
-  // Convert URL mode into an internal filter key
-  const getModeKeyFromQuery = (m) => {
-    if (m === "all") return "all";
-    if (m.includes("1v1")) return "1v1";
-    if (m.includes("2v2")) return "2v2";
-    if (m.includes("4v4")) return "4v4";
+  // OLD MODE URL SUPPORT
 
-    return "all";
-  };
+  const rawMode = (
+    searchParams.get("mode") || "all"
+  ).trim().toLowerCase();
 
-  const modeKey = getModeKeyFromQuery(mode);
-
-  // Identify tournament mode
-  const getModeKeyFromTournament = (tMode) => {
-    const nm = normalize(tMode);
-
-    if (nm.includes("1v1")) return "1v1";
-    if (nm.includes("2v2")) return "2v2";
-    if (nm.includes("4v4")) return "4v4";
-
-    return "all";
-  };
-
-  // ============================================================
-  // FETCH REAL TOURNAMENTS
-  // ============================================================
+  // ==========================================================
+  // FETCH TOURNAMENTS
+  // ==========================================================
 
   const fetchTournaments = useCallback(async () => {
-    if (!TOURNAMENT_API) {
-      setError(
-        "Tournament API URL is not configured. Set VITE_TOURNAMENT_API_URL in the production environment."
-      );
-
-      setLoading(false);
-      return;
-    }
-
     try {
       setError("");
 
@@ -188,123 +285,201 @@ const Tournaments = () => {
         `${TOURNAMENT_API}/api/tournaments`,
         {
           method: "GET",
-
           headers: {
             Accept: "application/json",
           },
-
           cache: "no-store",
         }
       );
 
       const data = await getJson(response);
 
-      // The API may return tournaments as an array or inside an object
-      const list = Array.isArray(data)
-        ? data
-        : Array.isArray(data.tournaments)
-        ? data.tournaments
-        : Array.isArray(data.data)
-        ? data.data
-        : [];
+      const list = getTournamentList(data);
 
       const normalized = list
         .map(normalizeTournament)
         .filter((t) => t.id);
 
       setTournaments(normalized);
+
     } catch (err) {
       console.error("Tournament Fetch Error:", err);
 
       setError(
         err.message ||
-          "Unable to load tournaments. Please try again."
+        "Unable to load tournaments. Please try again."
       );
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // ============================================================
+  // ==========================================================
   // INITIAL LOAD + AUTO REFRESH
-  // ============================================================
+  // ==========================================================
 
   useEffect(() => {
     fetchTournaments();
 
-    // Refresh the tournament list every 30 seconds
     const interval = setInterval(() => {
       fetchTournaments();
     }, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [fetchTournaments]);
 
-  // ============================================================
+  // ==========================================================
   // FILTER TOURNAMENTS
-  // ============================================================
+  // ==========================================================
 
-  const filteredTournaments = tournaments.filter((t) => {
-    if (modeKey === "all") return true;
+  const filteredTournaments = useMemo(() => {
+    return tournaments.filter((t) => {
 
-    const tournamentMode = getModeKeyFromTournament(t.mode);
+      // ALL TOURNAMENTS
 
-    return tournamentMode === modeKey;
-  });
+      if (!category || category === "all") {
+        if (rawMode === "all") return true;
 
-  // ============================================================
+        // OLD MODE URL SUPPORT
+
+        const combined = `${t.game_mode} ${t.match_type}`
+          .toLowerCase()
+          .replace(/\s+/g, "");
+
+        if (rawMode.includes("1v1")) {
+          return combined.includes("1v1");
+        }
+
+        if (rawMode.includes("2v2")) {
+          return combined.includes("2v2");
+        }
+
+        if (rawMode.includes("4v4")) {
+          return combined.includes("4v4");
+        }
+
+        return true;
+      }
+
+      // CATEGORY MATCHING
+
+      const tournamentCategories =
+        getTournamentCategories(t);
+
+      return tournamentCategories.some(
+        (item) => item.value.toLowerCase() === category
+      );
+    });
+  }, [tournaments, category, rawMode]);
+
+  // ==========================================================
   // PAGE TITLE
-  // ============================================================
+  // ==========================================================
 
-  const getModeTitle = (key) => {
-    const titles = {
-      all: "All Tournaments",
-      "1v1": "1v1 TDM",
-      "2v2": "2v2 TDM",
-      "4v4": "4v4 TDM",
-    };
+  const getPageTitle = () => {
 
-    return titles[key] || "All Tournaments";
+    if (!category || category === "all") {
+      if (rawMode === "all") {
+        return "All Tournaments";
+      }
+
+      if (rawMode.includes("1v1")) return "1v1 TDM";
+      if (rawMode.includes("2v2")) return "2v2 TDM";
+      if (rawMode.includes("4v4")) return "4v4 TDM";
+
+      return "All Tournaments";
+    }
+
+    if (category.startsWith("map:")) {
+      const mapSlug = category.replace("map:", "");
+
+      const tournament = tournaments.find((t) =>
+        getTournamentCategories(t).some(
+          (item) => item.value === category
+        )
+      );
+
+      if (tournament) {
+        return (
+          tournament.map ||
+          tournament.map_name ||
+          tournament.tournament_map ||
+          mapSlug
+        );
+      }
+
+      return mapSlug
+        .split("-")
+        .map(
+          (word) =>
+            word.charAt(0).toUpperCase() + word.slice(1)
+        )
+        .join(" ");
+    }
+
+    if (category === "mode:tdm-1v1") return "1v1 TDM";
+    if (category === "mode:tdm-2v2") return "2v2 TDM";
+    if (category === "mode:tdm-4v4") return "4v4 TDM";
+    if (category === "mode:tdm") return "TDM";
+
+    return "All Tournaments";
   };
 
-  // ============================================================
+  // ==========================================================
   // RETRY
-  // ============================================================
+  // ==========================================================
 
   const handleRetry = () => {
     setLoading(true);
+    setError("");
     fetchTournaments();
   };
 
-  // ============================================================
+  // ==========================================================
   // UI
-  // ============================================================
+  // ==========================================================
 
   return (
-    <div className="tournaments-page">
+    <div
+      className="tournaments-page"
+      style={{
+        "--home-desktop": `url("${homeDesktop}")`,
+        "--home-mobile": `url("${homeMobile}")`,
+      }}
+    >
       <div className="tournaments-container">
 
+        {/* PAGE HEADER */}
+
         <header className="page-header">
-          <h1>{getModeTitle(modeKey)}</h1>
+          <h1>{getPageTitle()}</h1>
 
           <p className="tournaments-count">
             ({loading ? "..." : filteredTournaments.length})
           </p>
         </header>
 
+        {/* TOURNAMENT SECTION */}
+
         <div className="tournaments-section">
           <div className="tour-grid-wrapper">
             <div className="tour-grid">
 
               {/* LOADING */}
+
               {loading && (
                 <div className="no-tournaments">
                   <h3>Loading Tournaments...</h3>
-                  <p>Please wait while we fetch tournaments.</p>
+                  <p>
+                    Please wait while we fetch tournaments.
+                  </p>
                 </div>
               )}
 
               {/* ERROR */}
+
               {!loading && error && (
                 <div className="no-tournaments">
                   <h3>Unable to Load Tournaments</h3>
@@ -321,6 +496,7 @@ const Tournaments = () => {
               )}
 
               {/* TOURNAMENT CARDS */}
+
               {!loading &&
                 !error &&
                 filteredTournaments.length > 0 &&
@@ -332,14 +508,14 @@ const Tournaments = () => {
                 ))}
 
               {/* EMPTY STATE */}
+
               {!loading &&
                 !error &&
                 filteredTournaments.length === 0 && (
                   <div className="no-tournaments">
                     <h3>No Tournament Found</h3>
-
                     <p>
-                      No tournaments available for this mode.
+                      No tournaments available for this category.
                     </p>
                   </div>
                 )}

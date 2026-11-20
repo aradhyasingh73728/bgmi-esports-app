@@ -175,10 +175,12 @@ a {
 
   width: 100%;
   min-height: 54px;
-  padding: 7px 14px;
+
+  /* RIGHT SIDE MOVED CLOSER TO EDGE */
+  padding: 7px 4px 7px 14px;
 }
 
-/* Bell and hamburger stay in one horizontal row */
+/* Bell and hamburger */
 
 .top-menu-actions {
   display: flex;
@@ -204,8 +206,6 @@ a {
   min-width: 40px;
   min-height: 40px;
 }
-
-/* Keep bell content centered */
 
 .top-menu-notification > * {
   display: flex;
@@ -484,7 +484,9 @@ a {
 
   .nav-top-menu {
     min-height: 50px;
-    padding: 6px 10px;
+
+    /* MENU MORE TO THE RIGHT */
+    padding: 6px 4px 6px 10px;
   }
 
   .top-menu-actions {

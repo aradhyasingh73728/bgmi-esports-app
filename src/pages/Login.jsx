@@ -1,4 +1,3 @@
-
 import React, {
   useState,
   useEffect,
@@ -21,6 +20,36 @@ const API_URL = isLocalhost
   ? "http://localhost:5001"
   : process.env.REACT_APP_API_URL ||
     "https://user-register-server-5001.onrender.com";
+
+// ==========================================
+// EMAIL HINT (shared with Forgot Password page)
+// Only the email is remembered, never the password.
+// sessionStorage clears when the tab is closed.
+// ==========================================
+
+const EMAIL_HINT_KEY = "bgmi_email_hint";
+
+const getEmailHint = () => {
+  try {
+    return sessionStorage.getItem(EMAIL_HINT_KEY) || "";
+  } catch (error) {
+    return "";
+  }
+};
+
+const saveEmailHint = (value) => {
+  try {
+    const clean = String(value || "").toLowerCase().trim();
+
+    if (clean) {
+      sessionStorage.setItem(EMAIL_HINT_KEY, clean);
+    } else {
+      sessionStorage.removeItem(EMAIL_HINT_KEY);
+    }
+  } catch (error) {
+    // Storage blocked: ignore, autofill is only a convenience
+  }
+};
 
 // ==========================================
 // DEVICE INSTALLATION ID
@@ -238,6 +267,13 @@ const Login = () => {
 
     if (savedEmail) {
       setEmail(savedEmail);
+    } else {
+      // Email typed earlier (for example on the Forgot Password page)
+      const hint = getEmailHint();
+
+      if (hint) {
+        setEmail(hint);
+      }
     }
 
     if (savedPassword) {
@@ -335,7 +371,6 @@ const Login = () => {
       }
 
       saveUserSession(serverData.user);
-
     } catch (err) {
       console.error("LOGIN ERROR:", err);
 
@@ -348,7 +383,9 @@ const Login = () => {
   };
 
   // ==========================================
-  // GOOGLE LOGIN
+  // GOOGLE LOGIN (mode: "login")
+  // The real Google credential arrives here
+  // (through the initialize() callback below).
   // ==========================================
 
   const handleGoogleCredential = useCallback(async (response) => {
@@ -373,6 +410,7 @@ const Login = () => {
 
         body: JSON.stringify({
           credential: response.credential,
+          mode: "login",
           ...deviceDetails,
         }),
       });
@@ -388,7 +426,6 @@ const Login = () => {
       console.log("GOOGLE LOGIN SUCCESS:", data.user.profile_id);
 
       saveUserSession(data.user);
-
     } catch (err) {
       console.error("GOOGLE LOGIN ERROR:", err);
 
@@ -431,19 +468,6 @@ const Login = () => {
         client_id: clientId,
         callback: handleGoogleCredential,
       });
-
-      googleButtonRef.current.innerHTML = "";
-
-      window.google.accounts.id.renderButton(
-        googleButtonRef.current,
-        {
-          theme: "outline",
-          size: "large",
-          shape: "rectangular",
-          text: "continue_with",
-          width: 300,
-        }
-      );
     };
 
     const handleScriptError = () => {
@@ -484,6 +508,48 @@ const Login = () => {
       }
     };
   }, [handleGoogleCredential]);
+
+  // ==========================================
+  // CUSTOM GOOGLE LOGIN BUTTON HANDLER
+  // ==========================================
+
+  const handleCustomGoogleLogin = useCallback(() => {
+    if (!window.google?.accounts?.id) {
+      setError("Google Login is not ready. Please try again.");
+      return;
+    }
+
+    setGoogleLoading(true);
+    setError("");
+
+    // NOTE: the real credential arrives in the initialize() callback
+    // (handleGoogleCredential). This callback only reports the popup state.
+    window.google.accounts.id.prompt((notification) => {
+      // Popup is open: keep waiting
+      if (notification.isDisplayed?.()) return;
+
+      // Popup closed
+      if (notification.isDismissedMoment?.()) {
+        // A credential was returned: handleGoogleCredential handles it
+        if (notification.getDismissedReason?.() === "credential_returned") {
+          return;
+        }
+
+        // User closed the popup: just stop loading, no error
+        setGoogleLoading(false);
+        return;
+      }
+
+      // Popup could not open or was skipped
+      if (
+        notification.isNotDisplayed?.() ||
+        notification.isSkippedMoment?.()
+      ) {
+        setGoogleLoading(false);
+        setError("Google popup could not open. Please try again.");
+      }
+    });
+  }, []);
 
   // ==========================================
   // LOGIN PAGE UI
@@ -530,10 +596,15 @@ const Login = () => {
 
           <div className="input-group">
             <input
+              id="login-email"
+              name="email"
               type="email"
               placeholder="📧 Email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                saveEmailHint(e.target.value);
+              }}
               required
               className="input-field"
               autoComplete="email"
@@ -544,6 +615,8 @@ const Login = () => {
 
           <div className="input-group">
             <input
+              id="login-password"
+              name="password"
               type="password"
               placeholder="🔒 Password"
               value={password}
@@ -582,16 +655,40 @@ const Login = () => {
             OR
           </div>
 
-          <div
+          <button
+            type="button"
             ref={googleButtonRef}
             className="google-login-button"
-          ></div>
+            aria-label="Login With Google"
+            disabled={googleLoading}
+            onClick={handleCustomGoogleLogin}
+          >
+            <svg
+              className="google-icon"
+              viewBox="0 0 48 48"
+              focusable="false"
+              aria-hidden="true"
+            >
+              <path
+                fill="#EA4335"
+                d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+              />
+              <path
+                fill="#4285F4"
+                d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.72 7.18l7.27 5.64c4.25-3.92 7.49-9.72 7.49-17.29z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19z"
+              />
+              <path
+                fill="#34A853"
+                d="M24 48c6.48 0 11.93-2.13 15.91-5.81l-7.27-5.64c-2.02 1.35-4.61 2.15-8.64 2.15-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+              />
+            </svg>
 
-          {googleLoading && (
-            <p className="google-loading-message">
-              Google login processing...
-            </p>
-          )}
+            <span>Login With Google</span>
+          </button>
 
         </div>
 

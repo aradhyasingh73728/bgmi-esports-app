@@ -338,53 +338,140 @@ body {
   }
 }
 
-/* ================= GOOGLE SIGN-IN ================= */
+/* ================= GOOGLE SIGN-IN (REGISTER - PREMIUM RED GAMING) ================= */
 
-.google-signin-section {
+.google-register-section {
   width: 100%;
   margin-top: 17px;
   text-align: center;
 }
 
-.google-divider {
+.google-register-divider {
   display: flex;
   align-items: center;
   gap: 10px;
 
   margin-bottom: 13px;
 
-  color: #777777;
+  color: #ff9999;
   font-size: 11px;
   font-weight: 700;
+  letter-spacing: 1px;
+
+  text-shadow: 0 0 8px rgba(255, 50, 50, 0.4);
 }
 
-.google-divider::before,
-.google-divider::after {
+.google-register-divider::before,
+.google-register-divider::after {
   content: "";
   flex: 1;
   height: 1px;
-  background: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 50, 50, 0.45),
+    transparent
+  );
 }
 
-.google-button-wrapper {
+/* Custom Google Sign-Up Button - matches Create Account button dimensions */
+.google-register-button {
   width: 100%;
-  min-height: 40px;
+  height: 50px; /* Same as register-button padding: 11px + content */
+
+  background: linear-gradient(
+    135deg,
+    #1a0505,
+    #2b0808
+  );
+
+  border: 1px solid #ff2020;
+  border-radius: 10px;
+
+  box-shadow:
+    0 0 15px rgba(255, 0, 0, 0.35),
+    0 0 25px rgba(255, 0, 0, 0.15),
+    inset 0 0 8px rgba(255, 30, 30, 0.1);
 
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 12px;
 
+  cursor: pointer;
   overflow: hidden;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    filter 0.2s ease;
 }
 
-.google-button-wrapper iframe {
-  max-width: 100%;
+.google-register-button:hover {
+  transform: translateY(-2px);
+  border-color: #ff4545;
+  box-shadow:
+    0 0 22px rgba(255, 0, 0, 0.50),
+    0 0 35px rgba(255, 0, 0, 0.25),
+    inset 0 0 12px rgba(255, 50, 50, 0.15);
+  filter: brightness(1.15);
 }
 
-.google-loading {
-  color: #bbbbbb;
-  font-size: 12px;
-  margin-top: 9px;
+.google-register-button:active {
+  transform: scale(0.97);
+}
+
+/* Google SVG Icon Styling */
+.google-register-button .google-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.5;
+
+  transition: transform 0.2s ease;
+}
+
+.google-register-button:hover .google-icon {
+  transform: scale(1.1);
+}
+
+/* Text Styling */
+.google-register-button span {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+
+  white-space: nowrap;
+}
+
+.google-register-button:focus-visible {
+  outline: 2px solid #ff2020;
+  outline-offset: 2px;
+}
+
+.google-register-button:focus-visible .google-icon {
+  transform: scale(1.2);
+}
+
+.google-register-button iframe {
+  display: none; /* Hide default Google iframe, we use custom SVG */
+}
+
+/* Accessibility - show default button for screen readers when JS disabled */
+.google-register-button.noscript {
+  position: relative;
+}
+
+.google-register-button.noscript::after {
+  content: "Sign up with Google";
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 /* ================= LOGIN FOOTER ================= */

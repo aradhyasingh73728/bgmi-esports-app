@@ -1,6 +1,6 @@
 
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import TournamentCard from "../components/TournamentCard";
 import "./Home.css";
 
@@ -11,39 +11,48 @@ import homeMobile from "../assets/bg/home-mobile.webp";
 // TOURNAMENT API CONFIGURATION
 // ==========================================
 
-
 const isLocalhost =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1" ||
+  window.location.hostname === "::1" ||
   window.location.hostname === "[::1]";
 
-const TOURNAMENT_API = isLocalhost
-  ? "http://localhost:5005"
-  : process.env.REACT_APP_TOURNAMENT_API_URL ||
-    "https://create-tournament-server-5005.onrender.com";
-
+const TOURNAMENT_API = (
+  isLocalhost
+    ? "http://localhost:5005"
+    : (typeof process !== "undefined"
+        ? process.env.REACT_APP_TOURNAMENT_API_URL
+        : "") ||
+      "https://create-tournament-server-5005.onrender.com"
+).replace(/\/+$/, "");
 
 // ==========================================
-// CHECK WHETHER VALUE IS TRUE
+// COMMON HELPERS
 // ==========================================
 
-const isTrue = (value) => {
-  return value === true || value === "true";
+const isTrue = (value) =>
+  value === true ||
+  value === "true" ||
+  value === 1 ||
+  value === "1";
+
+const getTournamentList = (data) => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.tournaments)) return data.tournaments;
+  if (Array.isArray(data.data)) return data.data;
+  return [];
 };
-
-// ==========================================
-// FILTER PUBLISHED TOURNAMENTS
-// ==========================================
 
 const filterPublishedTournaments = (tournaments) => {
   return tournaments.filter((t) => {
     const published = isTrue(t.published);
-
     const hidden = isTrue(t.is_hidden);
 
     const visible = !(
       t.is_visible === false ||
-      t.is_visible === "false"
+      t.is_visible === "false" ||
+      t.is_visible === 0 ||
+      t.is_visible === "0"
     );
 
     const status = String(
@@ -52,12 +61,7 @@ const filterPublishedTournaments = (tournaments) => {
       .trim()
       .toLowerCase();
 
-    return (
-      published &&
-      !hidden &&
-      visible &&
-      status === "upcoming"
-    );
+    return published && !hidden && visible && status === "upcoming";
   });
 };
 
@@ -68,7 +72,7 @@ const filterPublishedTournaments = (tournaments) => {
 const deduplicateTournaments = (tournaments) => {
   const uniqueTournaments = new Map();
 
-  tournaments.forEach((t) => {
+  tournaments.forEach((t, index) => {
     const name = String(
       t.tournament_name || t.name || ""
     )
@@ -76,7 +80,6 @@ const deduplicateTournaments = (tournaments) => {
       .toLowerCase();
 
     const date = String(t.date || "").trim();
-
     const time = String(t.time || "").trim();
 
     const gameMode = String(
@@ -91,7 +94,9 @@ const deduplicateTournaments = (tournaments) => {
       .trim()
       .toLowerCase();
 
-    const mapName = String(t.map || "")
+    const mapName = String(
+      t.map || t.map_name || t.tournament_map || ""
+    )
       .trim()
       .toLowerCase();
 
@@ -108,7 +113,9 @@ const deduplicateTournaments = (tournaments) => {
             matchType,
             mapName,
           ].join("|")
-        : `id:${tournamentId}`;
+        : tournamentId
+          ? `id:${tournamentId}`
+          : `record:${index}`;
 
     const existing = uniqueTournaments.get(duplicateKey);
 
@@ -117,25 +124,100 @@ const deduplicateTournaments = (tournaments) => {
       return;
     }
 
-    // Prefer the record with more joined players.
-
     const getJoinedCount = (item) => {
       if (Array.isArray(item.joinedPlayers)) {
         return item.joinedPlayers.length;
       }
 
-      return Number(item.joinedPlayers || 0);
+      return Number(
+        item.joinedPlayers || item.registered || 0
+      );
     };
 
-    const existingCount = getJoinedCount(existing);
-    const newCount = getJoinedCount(t);
-
-    if (newCount > existingCount) {
+    if (getJoinedCount(t) > getJoinedCount(existing)) {
       uniqueTournaments.set(duplicateKey, t);
     }
   });
 
   return Array.from(uniqueTournaments.values());
+};
+
+// ==========================================
+// CATEGORY HELPERS
+// ==========================================
+
+const slugify = (value) =>
+  String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+const getTournamentCategories = (t) => {
+  const categories = [];
+
+  // MAP CATEGORY
+  const mapName = String(
+    t.map ||
+      t.map_name ||
+      t.tournament_map ||
+      t.mapName ||
+      ""
+  ).trim();
+
+  if (mapName) {
+    categories.push({
+      value: `map:${slugify(mapName)}`,
+      label: mapName,
+      type: "map",
+    });
+  }
+
+  // TDM / MATCH CATEGORY
+  const gameMode = String(
+    t.game_mode || t.mode || ""
+  ).trim();
+
+  const matchType = String(
+    t.match_type || t.type || ""
+  ).trim();
+
+  const combined = `${gameMode} ${matchType}`;
+
+  const tdmMatch = combined.match(/\b(1v1|2v2|4v4)\b/i);
+  const isTDM = /tdm/i.test(combined) || Boolean(tdmMatch);
+
+  if (isTDM) {
+    const matchSize = tdmMatch
+      ? tdmMatch[1].toUpperCase()
+      : "";
+
+    const label = matchSize
+      ? `TDM ${matchSize}`
+      : "TDM";
+
+    categories.push({
+      value: `mode:${slugify(label)}`,
+      label,
+      type: "mode",
+    });
+  }
+
+  return categories;
+};
+
+const buildTournamentCategories = (tournaments) => {
+  const categoryMap = new Map();
+
+  tournaments.forEach((t) => {
+    getTournamentCategories(t).forEach((category) => {
+      if (!categoryMap.has(category.value)) {
+        categoryMap.set(category.value, category);
+      }
+    });
+  });
+
+  return Array.from(categoryMap.values());
 };
 
 // ==========================================
@@ -149,32 +231,31 @@ const Home = () => {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
-
   const activeController = useRef(null);
+
+  // ==========================================
+  // DYNAMIC CATEGORIES
+  // ==========================================
+
+  const categories = useMemo(
+    () => buildTournamentCategories(featured),
+    [featured]
+  );
 
   // ==========================================
   // FETCH TOURNAMENTS
   // ==========================================
 
   const fetchTournaments = useCallback(async () => {
-    // Stop previous request if one is running.
-
     if (activeController.current) {
       activeController.current.abort();
     }
 
     const controller = new AbortController();
-
     activeController.current = controller;
 
     try {
       setError("");
-
-      if (!TOURNAMENT_API) {
-        throw new Error(
-          "Tournament API URL is not configured. Please check your environment variables."
-        );
-      }
 
       const response = await fetch(
         `${TOURNAMENT_API}/api/tournaments`,
@@ -183,6 +264,7 @@ const Home = () => {
           headers: {
             Accept: "application/json",
           },
+          cache: "no-store",
           signal: controller.signal,
         }
       );
@@ -197,40 +279,21 @@ const Home = () => {
         );
       }
 
-      // Get tournament array from API response.
-
-      const tournamentList = Array.isArray(data)
-        ? data
-        : Array.isArray(data.tournaments)
-        ? data.tournaments
-        : Array.isArray(data.data)
-        ? data.data
-        : [];
-
-      // STEP 1: Only published, visible Upcoming tournaments.
+      const tournamentList = getTournamentList(data);
 
       const publishedList =
         filterPublishedTournaments(tournamentList);
 
-      // STEP 2: Remove duplicate tournaments.
-
       const uniqueList =
         deduplicateTournaments(publishedList);
-
-      // STEP 3: Update Home Page.
 
       if (!controller.signal.aborted) {
         setFeatured(uniqueList);
       }
     } catch (err) {
-      if (err.name === "AbortError") {
-        return;
-      }
+      if (err.name === "AbortError") return;
 
-      console.error(
-        "HOME TOURNAMENT FETCH ERROR:",
-        err
-      );
+      console.error("HOME TOURNAMENT FETCH ERROR:", err);
 
       if (!controller.signal.aborted) {
         setError(
@@ -246,13 +309,19 @@ const Home = () => {
   }, []);
 
   // ==========================================
-  // INITIAL FETCH
+  // INITIAL FETCH + AUTO REFRESH
   // ==========================================
 
   useEffect(() => {
     fetchTournaments();
 
+    const interval = setInterval(() => {
+      fetchTournaments();
+    }, 30000);
+
     return () => {
+      clearInterval(interval);
+
       if (activeController.current) {
         activeController.current.abort();
       }
@@ -284,11 +353,11 @@ const Home = () => {
   // CATEGORY NAVIGATION
   // ==========================================
 
-  const handleCategoryClick = (cat) => {
+  const handleCategoryClick = (categoryValue = "all") => {
     const params = new URLSearchParams();
 
-    if (cat !== "All") {
-      params.set("mode", cat);
+    if (categoryValue !== "all") {
+      params.set("category", categoryValue);
     }
 
     navigate(`/tournaments?${params.toString()}`);
@@ -297,13 +366,12 @@ const Home = () => {
   };
 
   // ==========================================
-  // RETRY FETCH
+  // RETRY
   // ==========================================
 
   const handleRetry = () => {
     setLoading(true);
     setError("");
-
     fetchTournaments();
   };
 
@@ -319,9 +387,7 @@ const Home = () => {
         "--home-mobile": `url("${homeMobile}")`,
       }}
     >
-      {/* =====================================
-          HERO SECTION
-      ===================================== */}
+      {/* HERO SECTION */}
 
       <section className="hero">
         <div className="hero-left">
@@ -340,7 +406,8 @@ const Home = () => {
               <button
                 type="button"
                 className="hero-btn-primary all-tour-btn all-tour-btn-red"
-                onClick={() => setOpen((o) => !o)}
+                onClick={() => setOpen((previous) => !previous)}
+                aria-expanded={open}
               >
                 <span>
                   All Tournaments ({featured.length})
@@ -357,23 +424,40 @@ const Home = () => {
 
               {open && (
                 <div className="all-tour-dropdown">
-                  {[
-                    "All",
-                    "1v1 TDM",
-                    "2v2 TDM",
-                    "4v4 TDM",
-                  ].map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      className="all-tour-item"
-                      onClick={() =>
-                        handleCategoryClick(cat)
-                      }
-                    >
-                      {cat}
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    className="all-tour-item"
+                    onClick={() => handleCategoryClick("all")}
+                  >
+                    All Tournaments ({featured.length})
+                  </button>
+
+                  {categories.map((category) => {
+                    const count = featured.filter((t) =>
+                      getTournamentCategories(t).some(
+                        (item) => item.value === category.value
+                      )
+                    ).length;
+
+                    return (
+                      <button
+                        key={category.value}
+                        type="button"
+                        className="all-tour-item"
+                        onClick={() =>
+                          handleCategoryClick(category.value)
+                        }
+                      >
+                        {category.label} ({count})
+                      </button>
+                    );
+                  })}
+
+                  {!loading && categories.length === 0 && (
+                    <div className="all-tour-item">
+                      No categories available
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -385,14 +469,10 @@ const Home = () => {
         </div>
       </section>
 
-      {/* =====================================
-          TOURNAMENT SECTION
-      ===================================== */}
+      {/* TOURNAMENT SECTION */}
 
       <section className="tournaments-section">
         <div className="tour-grid-wrapper">
-          {/* LOADING STATE */}
-
           {loading && (
             <div className="home-loading">
               <div className="home-loader" />
@@ -400,12 +480,9 @@ const Home = () => {
             </div>
           )}
 
-          {/* ERROR STATE */}
-
           {!loading && error && (
             <div className="home-error">
               <h3>Unable to Load Tournaments</h3>
-
               <p>{error}</p>
 
               <button
@@ -417,35 +494,26 @@ const Home = () => {
             </div>
           )}
 
-          {/* EMPTY STATE */}
+          {!loading && !error && featured.length === 0 && (
+            <div className="home-empty">
+              <h3>No Tournaments Available</h3>
+              <p>
+                New tournaments will appear here once
+                they are published by the admin.
+              </p>
+            </div>
+          )}
 
-          {!loading &&
-            !error &&
-            featured.length === 0 && (
-              <div className="home-empty">
-                <h3>No Tournaments Available</h3>
-
-                <p>
-                  New tournaments will appear here once
-                  they are published by the admin.
-                </p>
-              </div>
-            )}
-
-          {/* TOURNAMENT CARDS */}
-
-          {!loading &&
-            !error &&
-            featured.length > 0 && (
-              <div className="tour-grid">
-                {featured.map((t) => (
-                  <TournamentCard
-                    key={t.tournament_id || t.id}
-                    t={t}
-                  />
-                ))}
-              </div>
-            )}
+          {!loading && !error && featured.length > 0 && (
+            <div className="tour-grid">
+              {featured.map((t, index) => (
+                <TournamentCard
+                  key={t.tournament_id || t.id || index}
+                  t={t}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

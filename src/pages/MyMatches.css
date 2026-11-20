@@ -1,7 +1,6 @@
 
 /* =====================================================
-   AK MY MATCHES - PREMIUM RED BLACK ESPORTS
-   Bold Label Boxes | Compact Cards | Better Height
+   MY MATCHES - PREMIUM RED BLACK ESPORTS UI
 ===================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -11,28 +10,30 @@
 .ak-my-matches-page {
   position: fixed;
   top: 52px;
-  bottom: 0;
   left: 0;
   right: 0;
+  bottom: 0;
 
   width: 100%;
   height: calc(100vh - 52px);
   height: calc(100dvh - 52px);
 
   margin: 0;
-  padding: 8px 10px 75px;
+  padding: 12px 10px 75px;
 
   display: flex;
   flex-direction: column;
 
-  background: #080808 !important;
-  color: #fff;
+  background:
+    radial-gradient(ellipse at top, rgba(100, 15, 30, 0.13), transparent 55%),
+    #08090d !important;
 
-  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  color: #ffffff;
+  font-family: "Inter", "Segoe UI", sans-serif;
 
-  z-index: 10;
   overflow: hidden;
   isolation: isolate;
+  z-index: 10;
 }
 
 .ak-my-matches-page,
@@ -44,8 +45,7 @@
 
 .ak-my-matches-container {
   width: 100%;
-  max-width: 450px;
-
+  max-width: 480px;
   height: 100%;
   min-height: 0;
 
@@ -54,57 +54,69 @@
   display: flex;
   flex-direction: column;
 
-  background: transparent !important;
   overflow: hidden;
+  background: transparent !important;
 }
 
 /* ================= HEADER ================= */
 
 .ak-my-matches-header {
-  width: 100%;
   flex: 0 0 auto;
+  width: 100%;
 
-  margin-bottom: 8px;
-  padding: 9px 12px;
+  margin-bottom: 12px;
+  padding: 13px 15px;
 
-  border-radius: 9px;
+  border-radius: 12px;
 
   background: linear-gradient(
-    110deg,
-    #300b14,
-    #19090e,
-    #100b0d
+    120deg,
+    #3b0d18,
+    #1d0b11 60%,
+    #100b0e
   ) !important;
 
-  border: 1px solid rgba(255, 48, 79, 0.4);
+  border: 1px solid rgba(255, 55, 85, 0.35);
 
   box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.5),
-    inset 0 1px rgba(255, 255, 255, 0.04);
+    0 5px 18px rgba(0, 0, 0, 0.35),
+    inset 0 1px rgba(255, 255, 255, 0.05);
+
+  position: relative;
+  overflow: hidden;
+}
+
+.ak-my-matches-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #ff405e;
+  box-shadow: 0 0 14px rgba(255, 55, 85, 0.6);
 }
 
 .ak-my-matches-header h1 {
-  margin: 0 0 3px;
+  margin: 0 0 5px;
 
-  font-size: 16px;
-  line-height: 1.2;
+  color: #ffffff !important;
+  font-size: 19px;
   font-weight: 900;
-
-  color: #fff !important;
   letter-spacing: 0.4px;
+  line-height: 1.3;
 }
 
 .ak-my-matches-header p {
   margin: 0;
 
-  font-size: 10px;
-  font-weight: 700;
-
-  color: #c6aeb3 !important;
+  color: #c5aeb4 !important;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .ak-my-matches-header strong {
-  color: #ff526b !important;
+  color: #ff536f !important;
   font-weight: 900;
 }
 
@@ -114,19 +126,18 @@
   width: 100%;
   flex: 1 1 0;
 
-  min-height: 0;
   min-width: 0;
+  min-height: 0;
 
   display: flex;
   flex-direction: column;
   align-items: stretch;
 
-  gap: 8px;
+  gap: 11px;
+  padding: 3px 2px 15px;
 
   overflow-y: auto !important;
   overflow-x: hidden !important;
-
-  padding: 3px 2px 12px;
 
   background: transparent !important;
 
@@ -134,12 +145,21 @@
   overscroll-behavior-y: contain;
   touch-action: pan-y;
 
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 55, 85, 0.45) transparent;
 }
 
 .ak-my-matches-list::-webkit-scrollbar {
-  display: none !important;
+  width: 4px;
+}
+
+.ak-my-matches-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ak-my-matches-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 55, 85, 0.45);
+  border-radius: 10px;
 }
 
 /* ================= MATCH CARD ================= */
@@ -153,71 +173,65 @@
 
   flex: 0 0 auto;
 
-  /* Increased bottom size */
+  padding: 14px 13px 15px;
 
-  padding: 11px 11px 15px;
-
-  border-radius: 10px;
+  border-radius: 12px;
 
   background: linear-gradient(
-    135deg,
-    #300b13 0%,
-    #1d0a0f 30%,
-    #100b0e 65%,
-    #22090f 100%
+    140deg,
+    #301019 0%,
+    #1c0d13 42%,
+    #100c11 100%
   ) !important;
 
-  border: 1px solid rgba(255, 55, 80, 0.38);
+  border: 1px solid rgba(255, 60, 85, 0.3);
 
   box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.5),
-    inset 0 1px rgba(255, 255, 255, 0.04);
+    0 5px 16px rgba(0, 0, 0, 0.35),
+    inset 0 1px rgba(255, 255, 255, 0.035);
 
-  transition: 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
-/* LEFT RED LINE */
-
 .ak-my-matches-card::before {
-  content: '';
+  content: "";
 
   position: absolute;
-
-  top: 9px;
-  bottom: 9px;
+  top: 12px;
+  bottom: 12px;
   left: 0;
 
   width: 3px;
 
-  border-radius: 4px;
+  border-radius: 5px;
 
   background: linear-gradient(
     180deg,
-    #ff526b,
-    #b51231,
-    #ff263f
+    #ff647d,
+    #c51e3c,
+    #ff304f
   );
 
-  box-shadow: 0 0 8px rgba(255, 48, 79, 0.4);
+  box-shadow: 0 0 10px rgba(255, 48, 79, 0.35);
 }
 
-/* TOP LIGHT */
-
 .ak-my-matches-card::after {
-  content: '';
+  content: "";
 
   position: absolute;
-
   top: 0;
-  left: 15px;
-  right: 15px;
+  left: 18px;
+  right: 18px;
 
   height: 1px;
 
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 65, 90, 0.5),
+    rgba(255, 75, 100, 0.5),
     transparent
   );
 
@@ -225,45 +239,48 @@
 }
 
 .ak-my-matches-card:hover {
-  border-color: rgba(255, 55, 80, 0.7);
+  border-color: rgba(255, 65, 95, 0.65);
 
   box-shadow:
-    0 5px 15px rgba(0, 0, 0, 0.55),
-    0 0 12px rgba(255, 48, 79, 0.12);
+    0 7px 20px rgba(0, 0, 0, 0.4),
+    0 0 13px rgba(255, 48, 79, 0.09);
+
+  transform: translateY(-1px);
 }
 
 /* ================= CARD HEADER ================= */
 
 .ak-my-matches-card-header {
   width: 100%;
+  min-width: 0;
 
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
 
-  gap: 8px;
+  gap: 10px;
 
-  margin-bottom: 9px;
-  padding-bottom: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
 
-  border-bottom: 1px solid rgba(255, 70, 95, 0.25);
+  border-bottom: 1px solid rgba(255, 70, 95, 0.22);
 }
 
 .ak-my-matches-card-header h3 {
+  flex: 1 1 auto;
   min-width: 0;
-  max-width: 75%;
 
   margin: 0;
 
-  font-size: 13px;
-  line-height: 1.3;
+  color: #ffffff !important;
+
+  font-size: 14px;
+  line-height: 1.4;
   font-weight: 900;
 
-  color: #fff !important;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  white-space: normal;
 }
 
 /* ================= STATUS ================= */
@@ -271,63 +288,58 @@
 .ak-my-matches-status {
   flex: 0 0 auto;
 
-  padding: 4px 7px;
+  padding: 5px 9px;
 
-  border-radius: 5px;
+  border-radius: 6px;
 
-  background: linear-gradient(
-    135deg,
-    rgba(255, 48, 79, 0.25),
-    rgba(130, 15, 35, 0.2)
-  ) !important;
+  background: rgba(255, 55, 85, 0.13) !important;
+  border: 1px solid rgba(255, 70, 95, 0.4);
 
-  border: 1px solid rgba(255, 65, 90, 0.5);
+  color: #ff8295 !important;
 
-  color: #ff7185 !important;
-
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 900;
-
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
+
   white-space: nowrap;
 }
 
 /* ================= DETAILS ================= */
 
 .ak-my-matches-details {
+  width: 100%;
+  min-width: 0;
+
   display: flex;
   flex-direction: column;
 
-  gap: 6px;
-
-  width: 100%;
-  min-width: 0;
+  gap: 8px;
 
   background: transparent !important;
 }
 
-/* EACH ROW */
+/* ================= DETAIL ROW ================= */
 
 .ak-my-matches-row {
+  width: 100%;
+  min-width: 0;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  gap: 9px;
-
-  width: 100%;
-  min-width: 0;
+  gap: 10px;
 
   padding: 2px 0;
 
-  font-size: 11px;
-  line-height: 1.3;
+  color: #ffffff !important;
 
-  color: #fff !important;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
-/* COLUMN NAME BOX */
+/* LABEL */
 
 .ak-my-matches-row > span:first-child {
   flex: 0 1 auto;
@@ -336,31 +348,31 @@
   display: inline-flex;
   align-items: center;
 
-  padding: 4px 7px;
+  padding: 5px 8px;
 
-  border-radius: 5px;
+  border-radius: 6px;
 
   background: linear-gradient(
     135deg,
-    #631625,
-    #351019
+    #591827,
+    #321019
   ) !important;
 
-  border: 1px solid rgba(255, 76, 100, 0.55);
+  border: 1px solid rgba(255, 75, 100, 0.35);
 
-  color: #ffb2bd !important;
+  color: #ffc0ca !important;
 
-  font-size: 9.5px;
-  line-height: 1.2;
+  font-size: 9px;
+  line-height: 1.3;
   font-weight: 900;
 
   letter-spacing: 0.35px;
   text-transform: uppercase;
 
-  white-space: nowrap;
+  white-space: normal;
 }
 
-/* COLUMN VALUE */
+/* VALUE */
 
 .ak-my-matches-row > span:last-child {
   flex: 1 1 auto;
@@ -368,20 +380,21 @@
 
   text-align: right;
 
-  color: #fff !important;
+  color: #f5f5f5 !important;
 
-  font-size: 11.5px;
-  line-height: 1.3;
-  font-weight: 900;
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 800;
 
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* ================= HIGHLIGHT ================= */
 
 .ak-my-matches-row .ak-my-matches-highlight {
-  color: #ff657d !important;
-  font-size: 11.5px;
+  color: #ff7187 !important;
+  font-size: 12px;
   font-weight: 900;
 }
 
@@ -389,7 +402,7 @@
 
 .ak-my-matches-row .ak-my-matches-prize {
   color: #34d399 !important;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 900;
 }
 
@@ -397,29 +410,28 @@
 
 .ak-my-matches-room {
   width: 100%;
+  min-width: 0;
 
-  margin-top: 10px;
-  padding: 9px 9px;
-
-  background: linear-gradient(
-    110deg,
-    #3a0c17,
-    #200b11,
-    #120b0e
-  ) !important;
-
-  border: 1px solid rgba(255, 55, 80, 0.4);
-  border-radius: 8px;
+  margin-top: 7px;
+  padding: 11px;
 
   display: flex;
   flex-direction: column;
 
-  gap: 6px;
+  gap: 8px;
+
+  background: linear-gradient(
+    120deg,
+    #3a101b,
+    #210d13
+  ) !important;
+
+  border: 1px solid rgba(255, 65, 90, 0.35);
+  border-radius: 9px;
 }
 
 .ak-my-matches-room .ak-my-matches-row {
   gap: 8px;
-  padding: 2px 0;
 }
 
 /* ROOM LABEL */
@@ -428,36 +440,31 @@
   flex: 0 1 auto;
   min-width: 0;
 
-  padding: 4px 7px;
+  padding: 5px 7px;
 
-  background: #5b1424 !important;
-
-  border: 1px solid rgba(255, 76, 100, 0.5);
+  background: #571827 !important;
+  border: 1px solid rgba(255, 75, 100, 0.35);
   border-radius: 5px;
 
-  color: #ffc0ca !important;
+  color: #ffc2cc !important;
 
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 900;
 }
 
-/* ROOM ID / PASSWORD */
+/* ROOM ID AND PASSWORD */
 
 .ak-my-matches-room .ak-my-matches-row strong {
   flex: 1 1 auto;
   min-width: 0;
 
-  padding: 3px 5px;
-
-  text-align: right;
-
-  color: #ff7185 !important;
+  color: #ff8295 !important;
 
   font-size: 12px;
-  line-height: 1.3;
-  font-weight: 950;
+  line-height: 1.4;
+  font-weight: 900;
 
-  letter-spacing: 0.4px;
+  text-align: right;
 
   overflow-wrap: anywhere;
   word-break: break-all;
@@ -466,26 +473,22 @@
 /* ================= ROOM PENDING ================= */
 
 .ak-my-matches-pending {
-  margin-top: 8px;
-  padding: 8px;
+  width: 100%;
+
+  margin-top: 7px;
+  padding: 10px;
 
   text-align: center;
 
-  background: linear-gradient(
-    110deg,
-    #2a0d13,
-    #160b0e
-  ) !important;
+  background: rgba(255, 55, 85, 0.07) !important;
 
-  border: 1px solid rgba(255, 65, 90, 0.28);
-  border-radius: 7px;
+  border: 1px solid rgba(255, 65, 90, 0.25);
+  border-radius: 8px;
 
-  color: #e2c4ca !important;
+  color: #e9c0c8 !important;
 
-  font-size: 10px;
-  font-weight: 800;
-
-  letter-spacing: 0.2px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 /* ================= EMPTY STATE ================= */
@@ -499,79 +502,78 @@
   align-items: center;
   justify-content: center;
 
+  padding: 20px;
+
   text-align: center;
 
-  padding: 15px;
+  background: linear-gradient(
+    145deg,
+    rgba(65, 15, 28, 0.3),
+    rgba(15, 10, 13, 0.5)
+  ) !important;
 
-  background: transparent !important;
-
-  color: #c4aeb3 !important;
+  border: 1px solid rgba(255, 65, 90, 0.2);
+  border-radius: 12px;
 }
 
 .ak-my-matches-empty h2 {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
 
-  font-size: 16px;
+  color: #ffffff !important;
+
+  font-size: 18px;
   font-weight: 900;
-
-  color: #fff !important;
 }
 
 .ak-my-matches-empty p {
   margin: 0;
 
-  font-size: 10px;
-  font-weight: 600;
+  color: #bbaab0 !important;
 
-  color: #c4aeb3 !important;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 /* ================= MOBILE ================= */
 
 @media (max-width: 480px) {
-
   .ak-my-matches-page {
-    padding: 7px 8px 72px;
+    padding: 9px 8px 72px;
   }
 
   .ak-my-matches-header {
-    padding: 8px 10px;
-    margin-bottom: 7px;
+    padding: 11px 12px;
+    margin-bottom: 9px;
   }
 
   .ak-my-matches-header h1 {
-    font-size: 15px;
+    font-size: 17px;
   }
 
   .ak-my-matches-list {
-    gap: 7px;
-    padding: 2px 1px 12px;
+    gap: 9px;
   }
 
   .ak-my-matches-card {
-    padding: 10px 10px 14px;
-  }
-
-  .ak-my-matches-card-header {
-    margin-bottom: 8px;
-    padding-bottom: 7px;
+    padding: 12px 11px 13px;
   }
 
   .ak-my-matches-card-header h3 {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .ak-my-matches-details {
-    gap: 5px;
+    gap: 7px;
   }
 
   .ak-my-matches-row {
-    font-size: 10.5px;
+    gap: 7px;
+    font-size: 11px;
   }
 
   .ak-my-matches-row > span:first-child {
-    font-size: 9px;
-    padding: 4px 6px;
+    padding: 5px 6px;
+    font-size: 8.5px;
   }
 
   .ak-my-matches-row > span:last-child {
@@ -579,37 +581,36 @@
   }
 
   .ak-my-matches-room {
-    padding: 8px;
-    gap: 5px;
-  }
-
-  .ak-my-matches-room .ak-my-matches-row strong {
-    font-size: 11.5px;
+    padding: 9px;
   }
 }
 
-/* ================= SMALL PHONES ================= */
+/* ================= SMALL MOBILE ================= */
 
 @media (max-width: 360px) {
-
   .ak-my-matches-page {
-    padding: 6px 6px 70px;
+    padding: 7px 6px 70px;
   }
 
   .ak-my-matches-header h1 {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .ak-my-matches-card {
-    padding: 9px 9px 13px;
+    padding: 10px 9px 12px;
+  }
+
+  .ak-my-matches-card-header {
+    gap: 6px;
   }
 
   .ak-my-matches-card-header h3 {
-    font-size: 11px;
+    font-size: 12px;
   }
 
-  .ak-my-matches-row {
-    gap: 6px;
+  .ak-my-matches-status {
+    padding: 4px 6px;
+    font-size: 8px;
   }
 
   .ak-my-matches-row > span:first-child {
@@ -622,17 +623,16 @@
   }
 
   .ak-my-matches-room .ak-my-matches-row strong {
-    font-size: 10.5px;
+    font-size: 10px;
   }
 }
 
-/* ================= ACCESSIBILITY ================= */
+/* ================= REDUCED MOTION ================= */
 
 @media (prefers-reduced-motion: reduce) {
-
   .ak-my-matches-page *,
   .ak-my-matches-page *::before,
-  .ak-my-my-matches-page *::after {
+  .ak-my-matches-page *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
