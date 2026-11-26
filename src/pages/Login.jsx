@@ -474,8 +474,6 @@ const Login = () => {
       'script[src="https://accounts.google.com/gsi/client"]'
     );
 
-    let createdScript = false;
-
     const initializeGoogle = () => {
       if (
         !window.google?.accounts?.id ||
@@ -539,7 +537,9 @@ const Login = () => {
       if (notification.isDisplayed?.()) return;
 
       if (notification.isDismissedMoment?.()) {
-        if (notification.getDismissedReason?.() === "credential_returned") {
+        if (
+          notification.getDismissedReason?.() === "credential_returned"
+        ) {
           return;
         }
 
