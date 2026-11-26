@@ -1,3 +1,4 @@
+
 import React, {
   useState,
   useEffect,
@@ -225,6 +226,51 @@ const Register = () => {
   const googleButtonRef = useRef(null);
 
   // ==========================================
+  // MOBILE KEYBOARD AUTO SCROLL FIX
+  // ==========================================
+
+  useEffect(() => {
+    const scrollToFocusedInput = () => {
+      const activeElement = document.activeElement;
+
+      if (
+        activeElement &&
+        activeElement.matches("input, textarea")
+      ) {
+        setTimeout(() => {
+          activeElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "nearest",
+          });
+        }, 150);
+      }
+    };
+
+    document.addEventListener(
+      "focusin",
+      scrollToFocusedInput
+    );
+
+    window.visualViewport?.addEventListener(
+      "resize",
+      scrollToFocusedInput
+    );
+
+    return () => {
+      document.removeEventListener(
+        "focusin",
+        scrollToFocusedInput
+      );
+
+      window.visualViewport?.removeEventListener(
+        "resize",
+        scrollToFocusedInput
+      );
+    };
+  }, []);
+
+  // ==========================================
   // COMMON SAVE USER SESSION
   // ==========================================
 
@@ -252,8 +298,6 @@ const Register = () => {
 
   // ==========================================
   // GOOGLE LOGIN / REGISTER
-  // The real Google credential arrives here
-  // (through the initialize() callback below).
   // ==========================================
 
   const handleGoogleCredential = useCallback(async (response) => {
@@ -280,8 +324,6 @@ const Register = () => {
           "Content-Type": "application/json",
         },
 
-        // mode "register" makes the server return ACCOUNT_EXISTS
-        // when this Gmail is already registered
         body: JSON.stringify({
           credential: response.credential,
           mode: "register",
@@ -292,7 +334,6 @@ const Register = () => {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        // Account already exists: show a short message in the UI (no browser alert)
         if (data.code === "ACCOUNT_EXISTS") {
           setError("Already registered with this Gmail. Please login.");
           return;
@@ -335,25 +376,18 @@ const Register = () => {
     setError("");
     setSuccess("");
 
-    // NOTE: the real credential arrives in the initialize() callback
-    // (handleGoogleCredential). This callback only reports the popup state.
     window.google.accounts.id.prompt((notification) => {
-      // Popup is open: keep waiting
       if (notification.isDisplayed?.()) return;
 
-      // Popup closed
       if (notification.isDismissedMoment?.()) {
-        // A credential was returned: handleGoogleCredential handles it
         if (notification.getDismissedReason?.() === "credential_returned") {
           return;
         }
 
-        // User closed the popup: just stop loading, no error
         setGoogleLoading(false);
         return;
       }
 
-      // Popup could not open or was skipped
       if (
         notification.isNotDisplayed?.() ||
         notification.isSkippedMoment?.()
@@ -802,7 +836,7 @@ const Register = () => {
                     fill="#4285F4"
                   />
                   <path
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.85A11 11 0 0 0 12 23z"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.85A11 11 0 0 0 12 23z"
                     fill="#34A853"
                   />
                   <path

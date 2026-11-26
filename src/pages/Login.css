@@ -1,7 +1,8 @@
+
 /* =====================================================
    BGMI ESPORTS - PREMIUM LOGIN PAGE
    BLACK & RED GAMING THEME
-   Mobile Centered Fit + Keyboard Scroll Fix + Google Login
+   CENTERED CARD + MOBILE KEYBOARD SCROLL
 ===================================================== */
 
 *,
@@ -19,12 +20,6 @@ body {
   min-height: 100%;
 }
 
-#root {
-  width: 100%;
-  min-height: 100dvh;
-  margin: 0;
-}
-
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
@@ -35,16 +30,25 @@ body {
   background: #000000;
   color: #ffffff;
   overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  overflow: visible;
 }
 
 /* ================= CENTER WRAPPER ================= */
-/* min-height (not height): the page scrolls when content is taller,
-   and the card stays centered when content is shorter */
 
 .login-wrapper {
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
+  height: auto;
 
   display: flex;
   justify-content: center;
@@ -57,14 +61,16 @@ body {
     max(12px, env(safe-area-inset-left));
 
   background:
-    radial-gradient(
-      circle at 50% 40%,
-      rgba(160, 0, 0, 0.13),
-      transparent 45%
-    ),
-    #000000;
+    linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)),
+    url("../assets/bg/bgmi-red-bg.webp");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
 
   overflow-x: hidden;
+  overflow-y: visible;
 }
 
 /* ================= LOGIN CARD ================= */
@@ -75,7 +81,6 @@ body {
   width: 100%;
   max-width: 360px;
 
-  /* auto margin = safe centering, top never gets cut */
   margin: auto;
 
   background: linear-gradient(
@@ -99,8 +104,6 @@ body {
 
   overflow: hidden;
 }
-
-/* TOP NEON LINE */
 
 .login-container::before {
   content: "";
@@ -190,7 +193,6 @@ body {
 
   padding: 11px 12px;
 
-  /* 16px = iPhone will not zoom */
   font-size: 16px;
   font-weight: 500;
 
@@ -205,7 +207,7 @@ body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   scroll-margin-top: 90px;
-  scroll-margin-bottom: 120px;
+  scroll-margin-bottom: 140px;
 
   -webkit-appearance: none;
   appearance: none;
@@ -336,7 +338,7 @@ body {
   box-shadow: none;
 }
 
-/* ================= GOOGLE LOGIN (PREMIUM RED GAMING) ================= */
+/* ================= GOOGLE LOGIN ================= */
 
 .google-login-section {
   width: 100%;
@@ -426,12 +428,10 @@ body {
   box-shadow: none;
 }
 
-/* Google icon keeps its own colors */
 .google-login-button .google-icon {
   width: 24px;
   height: 24px;
   flex-shrink: 0;
-
   transition: transform 0.2s ease;
 }
 
@@ -444,7 +444,6 @@ body {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.5px;
-
   white-space: nowrap;
 }
 
@@ -486,12 +485,11 @@ body {
 }
 
 /* ================= MOBILE ================= */
-/* Card stays centered. When the keyboard opens the viewport shrinks,
-   margin:auto keeps the top from being cut and the page scrolls. */
 
 @media (max-width: 600px) {
   .login-wrapper {
     align-items: center;
+
     padding:
       max(14px, env(safe-area-inset-top))
       max(12px, env(safe-area-inset-right))
@@ -500,8 +498,8 @@ body {
   }
 
   .login-container {
-    max-width: 100%;
-    width: min(100%, 360px);
+    max-width: 360px;
+    width: 100%;
     margin: auto;
   }
 
@@ -540,7 +538,7 @@ body {
   }
 }
 
-/* ================= SHORT SCREENS (landscape / keyboard open) ================= */
+/* ================= SHORT SCREENS ================= */
 
 @media (max-height: 560px) {
   .login-wrapper {

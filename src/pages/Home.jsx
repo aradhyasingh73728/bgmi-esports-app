@@ -1,6 +1,6 @@
-
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { supabase } from "../supabaseClient";
 import TournamentCard from "../components/TournamentCard";
 import "./Home.css";
 
@@ -27,6 +27,30 @@ const TOURNAMENT_API = (
 ).replace(/\/+$/, "");
 
 // ==========================================
+// CACHE (page turant dikhane ke liye)
+// ==========================================
+
+const CACHE_KEY = "bgmi_home_tournaments_v1";
+
+const readCache = () => {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeCache = (list) => {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(list));
+  } catch {
+    /* storage full ya blocked ho to ignore */
+  }
+};
+
+// ==========================================
 // COMMON HELPERS
 // ==========================================
 
@@ -36,32 +60,62 @@ const isTrue = (value) =>
   value === 1 ||
   value === "1";
 
+const isFalse = (value) =>
+  value === false ||
+  value === "false" ||
+  value === 0 ||
+  value === "0";
+
 const getTournamentList = (data) => {
   if (Array.isArray(data)) return data;
-  if (Array.isArray(data.tournaments)) return data.tournaments;
-  if (Array.isArray(data.data)) return data.data;
+  if (Array.isArray(data?.tournaments)) return data.tournaments;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.results)) return data.results;
   return [];
 };
 
+// ==========================================
+// TOURNAMENT VISIBILITY FILTER
+// ==========================================
+
 const filterPublishedTournaments = (tournaments) => {
   return tournaments.filter((t) => {
-    const published = isTrue(t.published);
-    const hidden = isTrue(t.is_hidden);
+    if (!t || typeof t !== "object") return false;
 
-    const visible = !(
-      t.is_visible === false ||
-      t.is_visible === "false" ||
-      t.is_visible === 0 ||
-      t.is_visible === "0"
-    );
+    const publishedValue = t.published;
+    const hiddenValue = t.is_hidden;
+    const visibleValue = t.is_visible;
 
-    const status = String(
-      t.tournament_status || t.status || ""
-    )
+    const status = String(t.tournament_status || t.status || "")
       .trim()
-      .toLowerCase();
+      .toLowerCase()
+      .replace(/[\s_-]+/g, "");
 
-    return published && !hidden && visible && status === "upcoming";
+    if (isTrue(hiddenValue)) return false;
+    if (isFalse(visibleValue)) return false;
+
+    if (
+      publishedValue !== undefined &&
+      publishedValue !== null &&
+      !isTrue(publishedValue)
+    ) {
+      return false;
+    }
+
+    const upcomingStatuses = [
+      "upcoming",
+      "published",
+      "open",
+      "registrationopen",
+      "scheduled",
+      "active",
+    ];
+
+    if (status && !upcomingStatuses.includes(status)) {
+      return false;
+    }
+
+    return true;
   });
 };
 
@@ -73,24 +127,18 @@ const deduplicateTournaments = (tournaments) => {
   const uniqueTournaments = new Map();
 
   tournaments.forEach((t, index) => {
-    const name = String(
-      t.tournament_name || t.name || ""
-    )
+    const name = String(t.tournament_name || t.name || "")
       .trim()
       .toLowerCase();
 
     const date = String(t.date || "").trim();
     const time = String(t.time || "").trim();
 
-    const gameMode = String(
-      t.game_mode || t.mode || ""
-    )
+    const gameMode = String(t.game_mode || t.mode || "")
       .trim()
       .toLowerCase();
 
-    const matchType = String(
-      t.match_type || t.type || ""
-    )
+    const matchType = String(t.match_type || t.type || "")
       .trim()
       .toLowerCase();
 
@@ -100,19 +148,11 @@ const deduplicateTournaments = (tournaments) => {
       .trim()
       .toLowerCase();
 
-    const tournamentId =
-      t.tournament_id || t.id || "";
+    const tournamentId = t.tournament_id || t.id || "";
 
     const duplicateKey =
       name && date && time && gameMode && matchType
-        ? [
-            name,
-            date,
-            time,
-            gameMode,
-            matchType,
-            mapName,
-          ].join("|")
+        ? [name, date, time, gameMode, matchType, mapName].join("|")
         : tournamentId
           ? `id:${tournamentId}`
           : `record:${index}`;
@@ -128,10 +168,7 @@ const deduplicateTournaments = (tournaments) => {
       if (Array.isArray(item.joinedPlayers)) {
         return item.joinedPlayers.length;
       }
-
-      return Number(
-        item.joinedPlayers || item.registered || 0
-      );
+      return Number(item.joinedPlayers || item.registered || 0);
     };
 
     if (getJoinedCount(t) > getJoinedCount(existing)) {
@@ -156,13 +193,8 @@ const slugify = (value) =>
 const getTournamentCategories = (t) => {
   const categories = [];
 
-  // MAP CATEGORY
   const mapName = String(
-    t.map ||
-      t.map_name ||
-      t.tournament_map ||
-      t.mapName ||
-      ""
+    t.map || t.map_name || t.tournament_map || t.mapName || ""
   ).trim();
 
   if (mapName) {
@@ -173,14 +205,8 @@ const getTournamentCategories = (t) => {
     });
   }
 
-  // TDM / MATCH CATEGORY
-  const gameMode = String(
-    t.game_mode || t.mode || ""
-  ).trim();
-
-  const matchType = String(
-    t.match_type || t.type || ""
-  ).trim();
+  const gameMode = String(t.game_mode || t.mode || "").trim();
+  const matchType = String(t.match_type || t.type || "").trim();
 
   const combined = `${gameMode} ${matchType}`;
 
@@ -188,13 +214,8 @@ const getTournamentCategories = (t) => {
   const isTDM = /tdm/i.test(combined) || Boolean(tdmMatch);
 
   if (isTDM) {
-    const matchSize = tdmMatch
-      ? tdmMatch[1].toUpperCase()
-      : "";
-
-    const label = matchSize
-      ? `TDM ${matchSize}`
-      : "TDM";
+    const matchSize = tdmMatch ? tdmMatch[1].toUpperCase() : "";
+    const label = matchSize ? `TDM ${matchSize}` : "TDM";
 
     categories.push({
       value: `mode:${slugify(label)}`,
@@ -206,13 +227,18 @@ const getTournamentCategories = (t) => {
   return categories;
 };
 
+// categories + unka count ek hi baar me nikalta hai
 const buildTournamentCategories = (tournaments) => {
   const categoryMap = new Map();
 
   tournaments.forEach((t) => {
     getTournamentCategories(t).forEach((category) => {
-      if (!categoryMap.has(category.value)) {
-        categoryMap.set(category.value, category);
+      const existing = categoryMap.get(category.value);
+
+      if (existing) {
+        existing.count += 1;
+      } else {
+        categoryMap.set(category.value, { ...category, count: 1 });
       }
     });
   });
@@ -225,17 +251,15 @@ const buildTournamentCategories = (tournaments) => {
 // ==========================================
 
 const Home = () => {
-  const [featured, setFeatured] = useState([]);
+  // Cache se turant list dikhao, phir background me fresh data lao
+  const [featured, setFeatured] = useState(() => readCache());
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => readCache().length === 0);
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
-  const activeController = useRef(null);
 
-  // ==========================================
-  // DYNAMIC CATEGORIES
-  // ==========================================
+  const requestIdRef = useRef(0);
 
   const categories = useMemo(
     () => buildTournamentCategories(featured),
@@ -244,87 +268,132 @@ const Home = () => {
 
   // ==========================================
   // FETCH TOURNAMENTS
+  // silent = true => loader/error nahi dikhata (background refresh)
   // ==========================================
 
-  const fetchTournaments = useCallback(async () => {
-    if (activeController.current) {
-      activeController.current.abort();
-    }
-
-    const controller = new AbortController();
-    activeController.current = controller;
+  const fetchTournaments = useCallback(async (silent = false) => {
+    const currentRequestId = ++requestIdRef.current;
 
     try {
-      setError("");
+      if (!silent) setError("");
 
-      const response = await fetch(
-        `${TOURNAMENT_API}/api/tournaments`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
-          cache: "no-store",
-          signal: controller.signal,
-        }
-      );
+      const response = await fetch(`${TOURNAMENT_API}/api/tournaments`, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
 
-      const data = await response.json().catch(() => ({}));
+      const responseText = await response.text();
+
+      let data;
+
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        throw new Error("Server returned invalid JSON response.");
+      }
 
       if (!response.ok) {
         throw new Error(
           data.message ||
             data.error ||
-            "Unable to load tournaments. Please try again."
+            `Unable to load tournaments (${response.status}).`
         );
       }
 
+      if (currentRequestId !== requestIdRef.current) return;
+
       const tournamentList = getTournamentList(data);
+      const publishedList = filterPublishedTournaments(tournamentList);
+      const uniqueList = deduplicateTournaments(publishedList);
 
-      const publishedList =
-        filterPublishedTournaments(tournamentList);
-
-      const uniqueList =
-        deduplicateTournaments(publishedList);
-
-      if (!controller.signal.aborted) {
-        setFeatured(uniqueList);
-      }
+      setFeatured(uniqueList);
+      writeCache(uniqueList);
+      setError("");
     } catch (err) {
-      if (err.name === "AbortError") return;
+      if (currentRequestId !== requestIdRef.current) return;
 
       console.error("HOME TOURNAMENT FETCH ERROR:", err);
 
-      if (!controller.signal.aborted) {
+      // Background refresh fail ho to purani list hi dikhti rahe
+      if (!silent) {
         setError(
           err.message ||
             "Something went wrong while loading tournaments."
         );
       }
     } finally {
-      if (!controller.signal.aborted) {
+      if (currentRequestId === requestIdRef.current) {
         setLoading(false);
       }
     }
   }, []);
 
   // ==========================================
-  // INITIAL FETCH + AUTO REFRESH
+  // INITIAL FETCH
   // ==========================================
 
   useEffect(() => {
-    fetchTournaments();
+    fetchTournaments(false);
 
-    const interval = setInterval(() => {
-      fetchTournaments();
+    return () => {
+      requestIdRef.current += 1;
+    };
+  }, [fetchTournaments]);
+
+  // ==========================================
+  // REAL-TIME UPDATES (bina refresh ke)
+  // ==========================================
+
+  useEffect(() => {
+    let timer;
+
+    // Ek saath kai events aaye to sirf ek baar fetch ho
+    const scheduleRefresh = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fetchTournaments(true), 400);
+    };
+
+    // 1) Supabase realtime: admin publish/edit/delete kare to turant update
+    const channel = supabase
+      .channel("home-tournaments-live")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "create_tournament" },
+        scheduleRefresh
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tournament_joins" },
+        scheduleRefresh
+      )
+      .subscribe();
+
+    // 2) Tab wapas khule ya internet wapas aaye to refresh
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        fetchTournaments(true);
+      }
+    };
+
+    const onOnline = () => fetchTournaments(true);
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("online", onOnline);
+
+    // 3) Safety backup: realtime band ho jaye to bhi 30 sec me update
+    const poll = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchTournaments(true);
+      }
     }, 30000);
 
     return () => {
-      clearInterval(interval);
-
-      if (activeController.current) {
-        activeController.current.abort();
-      }
+      clearTimeout(timer);
+      clearInterval(poll);
+      supabase.removeChannel(channel);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("online", onOnline);
     };
   }, [fetchTournaments]);
 
@@ -341,7 +410,6 @@ const Home = () => {
     };
 
     setVH();
-
     window.addEventListener("resize", setVH);
 
     return () => {
@@ -361,7 +429,6 @@ const Home = () => {
     }
 
     navigate(`/tournaments?${params.toString()}`);
-
     setOpen(false);
   };
 
@@ -372,7 +439,7 @@ const Home = () => {
   const handleRetry = () => {
     setLoading(true);
     setError("");
-    fetchTournaments();
+    fetchTournaments(false);
   };
 
   // ==========================================
@@ -392,13 +459,8 @@ const Home = () => {
       <section className="hero">
         <div className="hero-left">
           <h1 className="hero-title">
-            <span className="hero-title-main">
-              BGMI
-            </span>
-
-            <span className="hero-title-accent">
-              ESPORTS
-            </span>
+            <span className="hero-title-main">BGMI</span>
+            <span className="hero-title-accent">ESPORTS</span>
           </h1>
 
           <div className="hero-actions">
@@ -409,14 +471,10 @@ const Home = () => {
                 onClick={() => setOpen((previous) => !previous)}
                 aria-expanded={open}
               >
-                <span>
-                  All Tournaments ({featured.length})
-                </span>
+                <span>All Tournaments ({featured.length})</span>
 
                 <span
-                  className={`all-tour-arrow ${
-                    open ? "open" : ""
-                  }`}
+                  className={`all-tour-arrow ${open ? "open" : ""}`}
                 >
                   ▼
                 </span>
@@ -432,26 +490,16 @@ const Home = () => {
                     All Tournaments ({featured.length})
                   </button>
 
-                  {categories.map((category) => {
-                    const count = featured.filter((t) =>
-                      getTournamentCategories(t).some(
-                        (item) => item.value === category.value
-                      )
-                    ).length;
-
-                    return (
-                      <button
-                        key={category.value}
-                        type="button"
-                        className="all-tour-item"
-                        onClick={() =>
-                          handleCategoryClick(category.value)
-                        }
-                      >
-                        {category.label} ({count})
-                      </button>
-                    );
-                  })}
+                  {categories.map((category) => (
+                    <button
+                      key={category.value}
+                      type="button"
+                      className="all-tour-item"
+                      onClick={() => handleCategoryClick(category.value)}
+                    >
+                      {category.label} ({category.count})
+                    </button>
+                  ))}
 
                   {!loading && categories.length === 0 && (
                     <div className="all-tour-item">
@@ -473,22 +521,19 @@ const Home = () => {
 
       <section className="tournaments-section">
         <div className="tour-grid-wrapper">
-          {loading && (
+          {loading && featured.length === 0 && (
             <div className="home-loading">
               <div className="home-loader" />
               <p>Loading tournaments...</p>
             </div>
           )}
 
-          {!loading && error && (
+          {!loading && error && featured.length === 0 && (
             <div className="home-error">
               <h3>Unable to Load Tournaments</h3>
               <p>{error}</p>
 
-              <button
-                type="button"
-                onClick={handleRetry}
-              >
+              <button type="button" onClick={handleRetry}>
                 Try Again
               </button>
             </div>
@@ -498,13 +543,13 @@ const Home = () => {
             <div className="home-empty">
               <h3>No Tournaments Available</h3>
               <p>
-                New tournaments will appear here once
-                they are published by the admin.
+                New tournaments will appear here once they are
+                published by the admin.
               </p>
             </div>
           )}
 
-          {!loading && !error && featured.length > 0 && (
+          {featured.length > 0 && (
             <div className="tour-grid">
               {featured.map((t, index) => (
                 <TournamentCard

@@ -590,3 +590,214 @@ body {
     padding: 23px 21px;
   }
 }
+
+
+
+
+/* ==========================================
+   MOBILE REGISTER - COMPACT + SCROLL FIX
+========================================== */
+
+.register-wrapper {
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  background-image:
+    linear-gradient(
+      rgba(0, 0, 0, 0.25),
+      rgba(0, 0, 0, 0.25)
+    ),
+    url("../assets/bg/bgmi-red-bg.webp");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+
+  overflow-x: hidden;
+}
+
+
+/* ==========================================
+   FINAL MOBILE REGISTER SCROLL FIX
+========================================== */
+
+/* Browser page scrolling */
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body {
+  position: relative;
+}
+
+#root {
+  width: 100%;
+  min-height: 100dvh;
+  height: auto;
+  overflow: visible;
+}
+
+/* Main wrapper */
+.register-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: visible;
+
+  background-image:
+    linear-gradient(
+      rgba(0, 0, 0, 0.25),
+      rgba(0, 0, 0, 0.25)
+    ),
+    url("../assets/bg/bgmi-red-bg.webp");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+}
+
+/* Register card */
+.register-container {
+  width: 100%;
+  max-width: 360px;
+  flex-shrink: 0;
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+
+  .register-wrapper {
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: auto;
+
+    align-items: flex-start;
+    justify-content: flex-start;
+
+    overflow: visible;
+
+    padding:
+      max(12px, env(safe-area-inset-top))
+      12px
+      max(20px, env(safe-area-inset-bottom));
+  }
+
+  .register-container {
+    width: 100%;
+    max-width: 330px;
+
+    margin: 10px auto 20px;
+    padding: 15px;
+
+    flex-shrink: 0;
+  }
+
+  .register-title {
+    font-size: 19px;
+  }
+
+  .register-subtitle {
+    font-size: 11px;
+    margin: 5px 0 11px;
+  }
+
+  .input-group {
+    margin-bottom: 9px;
+  }
+
+  .input-field {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 11px;
+    font-size: 16px;
+
+    scroll-margin-top: 25px;
+    scroll-margin-bottom: 160px;
+  }
+
+  .register-button {
+    min-height: 42px;
+    padding: 9px;
+    font-size: 13px;
+  }
+
+  .google-register-section {
+    margin-top: 12px;
+  }
+
+  .google-register-button {
+    height: 43px;
+  }
+
+  .login-link {
+    margin-top: 11px;
+    padding-top: 9px;
+  }
+}
+
+
+/* ==========================================
+   REGISTER CARD CENTER + MOBILE KEYBOARD SCROLL
+========================================== */
+
+.register-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow-x: hidden;
+  overflow-y: visible;
+
+  padding: 20px 12px;
+
+  background-attachment: scroll;
+}
+
+/* Card remains centered normally */
+.register-container {
+  width: 100%;
+  max-width: 360px;
+  margin: auto;
+  flex-shrink: 0;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .register-wrapper {
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 15px 12px;
+
+    overflow: visible;
+  }
+
+  .register-container {
+    width: 100%;
+    max-width: 330px;
+    margin: auto;
+  }
+}

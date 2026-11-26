@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLoading } from "../context/LoadingContext";
 import "./Profile.css";
 
 const isLocalhost =
@@ -9,14 +7,16 @@ const isLocalhost =
   window.location.hostname === "127.0.0.1" ||
   window.location.hostname === "[::1]";
 
-const API_URL = isLocalhost
-  ? "http://localhost:5001"
-  : import.meta.env.VITE_API_URL ||
-    "https://user-register-server-5001.onrender.com";
+const API_URL = (
+  isLocalhost
+    ? "http://localhost:5001"
+    : import.meta.env.VITE_API_URL ||
+      "https://user-register-server-5001.onrender.com"
+).replace(/\/+$/, "");
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
-// Built-in gaming avatars: public/avatars/avatar1.svg ... avatar12.svg
+// Built-in gaming avatars
 const gamingAvatars = Array.from(
   { length: 12 },
   (_, i) => `/avatars/avatar${i + 1}.svg`
@@ -27,7 +27,6 @@ const getFallbackAvatar = (name) =>
     name || "User"
   )}&background=1e40af&color=fff&size=512`;
 
-// Update user data in the same storage where it is currently saved
 const getStorage = () =>
   localStorage.getItem("bgmi_user") ? localStorage : sessionStorage;
 
@@ -43,7 +42,6 @@ const getStoredUser = () => {
   }
 };
 
-// The login page saves the token using the "backend_token" key
 const getToken = (user) =>
   user?.backend_token || user?.token || null;
 
@@ -54,38 +52,46 @@ const clearSession = () => {
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { setLoading } = useLoading();
 
+  // Local loading states — no global LoadingContext
   const [profile, setProfile] = useState(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isAvatarUpdating, setIsAvatarUpdating] = useState(false);
+
   const [isEditingAvatar, setIsEditingAvatar] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      setLoading(true);
+  // ============================================================
+  // LOAD PROFILE
+  // ============================================================
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProfile = async () => {
       try {
         const parsedUser = getStoredUser();
         const token = getToken(parsedUser);
 
-        // Redirect to login if user data or token is missing
         if (!parsedUser || !token) {
           navigate("/login");
           return;
         }
 
-        // Display the profile immediately using stored data
-        setProfile({
-          id: parsedUser.profile_id || "BGMI-Loading...",
-          name: parsedUser.username || "User",
-          avatar:
-            parsedUser.avatar ||
-            getFallbackAvatar(parsedUser.username),
-          email: parsedUser.email,
-        });
+        // Show locally stored profile immediately
+        if (isMounted) {
+          setProfile({
+            id: parsedUser.profile_id || "BGMI-Loading...",
+            name: parsedUser.username || "User",
+            avatar:
+              parsedUser.avatar ||
+              getFallbackAvatar(parsedUser.username),
+            email: parsedUser.email,
+          });
+        }
 
-        // Fetch fresh profile data from the server using the token
+        // Fetch fresh profile data
         const serverRes = await fetch(
           `${API_URL}/api/my-profile`,
           {
@@ -95,7 +101,6 @@ const Profile = () => {
           }
         );
 
-        // Check whether the token has expired or is invalid
         if (
           serverRes.status === 401 ||
           serverRes.status === 403
@@ -105,10 +110,9 @@ const Profile = () => {
           return;
         }
 
-        // Continue using stored data if the route is unavailable or the server returns an error
         if (!serverRes.ok) {
           console.warn(
-            "⚠️ my-profile failed:",
+            "my-profile failed:",
             serverRes.status
           );
           return;
@@ -116,10 +120,10 @@ const Profile = () => {
 
         const serverData = await serverRes.json();
 
-        if (serverData.success) {
+        if (serverData.success && serverData.user && isMounted) {
           const freshUser = serverData.user;
 
-          // Merge the token back into the updated user data
+          // Preserve token when updating stored user data
           getStorage().setItem(
             "bgmi_user",
             JSON.stringify({
@@ -129,25 +133,34 @@ const Profile = () => {
           );
 
           setProfile({
-            id: freshUser.profile_id,
-            name: freshUser.username,
+            id: freshUser.profile_id || parsedUser.profile_id,
+            name: freshUser.username || parsedUser.username || "User",
             avatar:
               freshUser.avatar ||
               getFallbackAvatar(freshUser.username),
-            email: freshUser.email,
+            email: freshUser.email || parsedUser.email,
           });
         }
       } catch (error) {
-        console.error("🚨 Profile error:", error);
+        console.error("Profile loading error:", error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setIsInitialLoading(false);
+        }
       }
     };
 
     loadProfile();
-  }, [navigate, setLoading]);
 
-  // Prevent memory leaks by revoking the preview URL
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
+
+  // ============================================================
+  // PREVIEW URL CLEANUP
+  // ============================================================
+
   useEffect(() => {
     return () => {
       if (previewUrl) {
@@ -156,15 +169,24 @@ const Profile = () => {
     };
   }, [previewUrl]);
 
+  // ============================================================
+  // RESET AVATAR MODAL
+  // ============================================================
+
   const resetAvatarModal = () => {
+    if (isAvatarUpdating) return;
+
     setSelectedFile(null);
     setPreviewUrl(null);
     setIsEditingAvatar(false);
   };
 
-  // Handle file selection and validation
+  // ============================================================
+  // FILE VALIDATION
+  // ============================================================
+
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
 
     if (!file) return;
 
@@ -184,9 +206,14 @@ const Profile = () => {
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  // Handle avatar update (default avatar or custom upload)
+  // ============================================================
+  // UPDATE AVATAR
+  // ============================================================
+
   const handleUpdateAvatar = async (avatarSource) => {
-    setLoading(true);
+    if (!avatarSource || isAvatarUpdating) return;
+
+    setIsAvatarUpdating(true);
 
     try {
       const storedUser = getStoredUser();
@@ -194,24 +221,26 @@ const Profile = () => {
 
       if (!storedUser || !token) {
         alert("Your session has expired. Please log in again.");
+        clearSession();
         navigate("/login");
         return;
       }
 
       let bodyData;
+
       const headers = {
         Authorization: `Bearer ${token}`,
       };
 
       if (typeof avatarSource === "string") {
-        // A default gaming avatar has been selected
+        // Default gaming avatar
         bodyData = JSON.stringify({
           avatarUrl: avatarSource,
         });
 
         headers["Content-Type"] = "application/json";
       } else {
-        // Custom file upload
+        // Custom image upload
         const formData = new FormData();
         formData.append("avatar", avatarSource);
         bodyData = formData;
@@ -226,7 +255,6 @@ const Profile = () => {
         }
       );
 
-      // Handle expired or invalid tokens
       if (res.status === 401 || res.status === 403) {
         clearSession();
         alert("Your session has expired. Please log in again.");
@@ -237,43 +265,95 @@ const Profile = () => {
       const data = await res.json();
 
       if (data.success) {
-        setProfile((prev) => ({
-          ...prev,
-          avatar: data.avatar,
-        }));
+        const updatedAvatar = data.avatar;
 
-        // Update user data in storage
-        const storage = getStorage();
-
-        const userData = JSON.parse(
-          storage.getItem("bgmi_user") || "{}"
+        setProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                avatar: updatedAvatar,
+              }
+            : prev
         );
 
-        userData.avatar = data.avatar;
+        // Update the same storage where the user is logged in
+        const storage = getStorage();
+
+        let userData = {};
+
+        try {
+          userData = JSON.parse(
+            storage.getItem("bgmi_user") || "{}"
+          );
+        } catch {
+          userData = {};
+        }
+
+        userData.avatar = updatedAvatar;
 
         storage.setItem(
           "bgmi_user",
           JSON.stringify(userData)
         );
 
-        resetAvatarModal();
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        setIsEditingAvatar(false);
       } else {
         alert(
-          data.message ||
-            "Unable to update profile picture."
+          data.message || "Unable to update profile picture."
         );
       }
-    } catch (err) {
-      console.error("Avatar update failed", err);
+    } catch (error) {
+      console.error("Avatar update failed:", error);
       alert("Server error. Please try again later.");
     } finally {
-      setLoading(false);
+      setIsAvatarUpdating(false);
     }
   };
 
   const goToBankDetails = () => {
     navigate("/bank-details");
   };
+
+  // ============================================================
+  // LOCAL PROFILE LOADER
+  // ============================================================
+
+  if (!profile && isInitialLoading) {
+    return (
+      <div className="esports-profile">
+        <div className="profile-local-loader">
+          <div className="profile-loader-orbit">
+            <div className="profile-loader-core">
+              <span>P</span>
+            </div>
+          </div>
+
+          <div className="profile-loader-brand">
+            PEACE<span>.</span>
+          </div>
+
+          <h2>LOADING PROFILE</h2>
+
+          <p>Preparing your player identity...</p>
+
+          <div className="profile-loader-progress">
+            <span />
+          </div>
+
+          <div className="profile-loader-status">
+            <span className="profile-loader-dot" />
+            CONNECTING TO SERVER
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // NO PROFILE FALLBACK
+  // ============================================================
 
   if (!profile) {
     return (
@@ -288,6 +368,10 @@ const Profile = () => {
     );
   }
 
+  // ============================================================
+  // PROFILE UI
+  // ============================================================
+
   return (
     <div className="esports-profile">
       <div className="profile-container">
@@ -296,13 +380,19 @@ const Profile = () => {
           <div className="player-card">
 
             <div
-              className="avatar-container"
-              onClick={() => setIsEditingAvatar(true)}
+              className={`avatar-container ${
+                isAvatarUpdating ? "avatar-updating" : ""
+              }`}
+              onClick={() => {
+                if (!isAvatarUpdating) {
+                  setIsEditingAvatar(true);
+                }
+              }}
             >
               <div className="avatar-circle">
                 <img
                   src={profile.avatar}
-                  alt="Avatar"
+                  alt="Profile Avatar"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = getFallbackAvatar(
@@ -333,7 +423,8 @@ const Profile = () => {
           </div>
         </header>
 
-        {/* Avatar Selection Modal */}
+        {/* AVATAR SELECTION MODAL */}
+
         {isEditingAvatar && (
           <div
             className="avatar-modal"
@@ -345,7 +436,8 @@ const Profile = () => {
             >
               <h3>Choose Profile Picture</h3>
 
-              {/* Default Gaming Avatars */}
+              {/* DEFAULT GAMING AVATARS */}
+
               <p>Select Default Gaming Avatar:</p>
 
               <div className="default-avatars-grid">
@@ -356,15 +448,16 @@ const Profile = () => {
                     alt={`Gaming Avatar ${index + 1}`}
                     onClick={() => handleUpdateAvatar(url)}
                     className={`selectable-avatar ${
-                      profile.avatar === url
-                        ? "active"
-                        : ""
+                      profile.avatar === url ? "active" : ""
+                    } ${
+                      isAvatarUpdating ? "avatar-option-disabled" : ""
                     }`}
                   />
                 ))}
               </div>
 
-              {/* Custom Upload */}
+              {/* CUSTOM UPLOAD */}
+
               <div className="custom-upload-section">
                 <p>Or Upload Custom Picture:</p>
 
@@ -372,13 +465,14 @@ const Profile = () => {
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
+                  disabled={isAvatarUpdating}
                 />
 
                 {previewUrl && (
                   <div className="upload-preview">
                     <img
                       src={previewUrl}
-                      alt="Preview"
+                      alt="Selected Avatar Preview"
                     />
 
                     <button
@@ -386,16 +480,29 @@ const Profile = () => {
                       onClick={() =>
                         handleUpdateAvatar(selectedFile)
                       }
+                      disabled={
+                        isAvatarUpdating || !selectedFile
+                      }
                     >
-                      Upload & Save
+                      {isAvatarUpdating
+                        ? "Saving..."
+                        : "Upload & Save"}
                     </button>
                   </div>
                 )}
               </div>
 
+              {isAvatarUpdating && (
+                <div className="avatar-saving-status">
+                  <span className="avatar-saving-spinner" />
+                  Updating your profile picture...
+                </div>
+              )}
+
               <button
                 className="close-modal-btn"
                 onClick={resetAvatarModal}
+                disabled={isAvatarUpdating}
               >
                 Cancel
               </button>

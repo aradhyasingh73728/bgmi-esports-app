@@ -1,3 +1,4 @@
+
 import React, {
   useState,
   useEffect,
@@ -22,9 +23,7 @@ const API_URL = isLocalhost
     "https://user-register-server-5001.onrender.com";
 
 // ==========================================
-// EMAIL HINT (shared with Forgot Password page)
-// Only the email is remembered, never the password.
-// sessionStorage clears when the tab is closed.
+// EMAIL HINT
 // ==========================================
 
 const EMAIL_HINT_KEY = "bgmi_email_hint";
@@ -47,13 +46,12 @@ const saveEmailHint = (value) => {
       sessionStorage.removeItem(EMAIL_HINT_KEY);
     }
   } catch (error) {
-    // Storage blocked: ignore, autofill is only a convenience
+    // Storage blocked: ignore
   }
 };
 
 // ==========================================
 // DEVICE INSTALLATION ID
-// SAME KEY AS Register.jsx
 // ==========================================
 
 const getInstallationId = () => {
@@ -95,7 +93,6 @@ const getInstallationId = () => {
 
 // ==========================================
 // DEVICE INFORMATION
-// SAME FORMAT AS Register.jsx
 // ==========================================
 
 const getDeviceDetails = () => {
@@ -108,8 +105,6 @@ const getDeviceDetails = () => {
   let browserName = "Unknown Browser";
   let browserVersion = "Unknown";
   let deviceType = "Desktop";
-
-  // OPERATING SYSTEM
 
   if (/Windows NT 10\.0/i.test(userAgent)) {
     operatingSystem = "Windows";
@@ -158,8 +153,6 @@ const getDeviceDetails = () => {
     deviceName = "Linux Device";
   }
 
-  // DEVICE TYPE
-
   if (/iPad|Tablet/i.test(userAgent)) {
     deviceType = "Tablet";
   } else if (/Mobile|Android|iPhone|iPod/i.test(userAgent)) {
@@ -167,8 +160,6 @@ const getDeviceDetails = () => {
   } else {
     deviceType = "Desktop";
   }
-
-  // BROWSER NAME AND VERSION
 
   let browserMatch = null;
 
@@ -196,8 +187,6 @@ const getDeviceDetails = () => {
     ? browserMatch[1]
     : "Unknown";
 
-  // TIMEZONE
-
   let timezone = "Unknown";
 
   try {
@@ -210,22 +199,16 @@ const getDeviceDetails = () => {
 
   return {
     installationId: getInstallationId(),
-
     deviceName,
     operatingSystem,
     osVersion,
-
     browserName,
     browserVersion,
-
     deviceType,
-
     screenWidth: window.screen?.width || null,
     screenHeight: window.screen?.height || null,
-
     language: navigator.language || "Unknown",
     timezone,
-
     platform,
   };
 };
@@ -245,6 +228,51 @@ const Login = () => {
   const [showRegisteredMsg, setShowRegisteredMsg] = useState(false);
 
   const googleButtonRef = useRef(null);
+
+  // ==========================================
+  // MOBILE KEYBOARD AUTO SCROLL FIX
+  // ==========================================
+
+  useEffect(() => {
+    const scrollToFocusedInput = () => {
+      const activeElement = document.activeElement;
+
+      if (
+        activeElement &&
+        activeElement.matches("input, textarea")
+      ) {
+        setTimeout(() => {
+          activeElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "nearest",
+          });
+        }, 150);
+      }
+    };
+
+    document.addEventListener(
+      "focusin",
+      scrollToFocusedInput
+    );
+
+    window.visualViewport?.addEventListener(
+      "resize",
+      scrollToFocusedInput
+    );
+
+    return () => {
+      document.removeEventListener(
+        "focusin",
+        scrollToFocusedInput
+      );
+
+      window.visualViewport?.removeEventListener(
+        "resize",
+        scrollToFocusedInput
+      );
+    };
+  }, []);
 
   // ==========================================
   // PAGE LOAD
@@ -268,7 +296,6 @@ const Login = () => {
     if (savedEmail) {
       setEmail(savedEmail);
     } else {
-      // Email typed earlier (for example on the Forgot Password page)
       const hint = getEmailHint();
 
       if (hint) {
@@ -346,7 +373,6 @@ const Login = () => {
       const payload = {
         email: email.toLowerCase().trim(),
         password: password.trim(),
-
         ...deviceDetails,
       };
 
@@ -354,11 +380,9 @@ const Login = () => {
 
       const loginRes = await fetch(`${API_URL}/api/login`, {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify(payload),
       });
 
@@ -383,9 +407,7 @@ const Login = () => {
   };
 
   // ==========================================
-  // GOOGLE LOGIN (mode: "login")
-  // The real Google credential arrives here
-  // (through the initialize() callback below).
+  // GOOGLE LOGIN
   // ==========================================
 
   const handleGoogleCredential = useCallback(async (response) => {
@@ -403,11 +425,9 @@ const Login = () => {
 
       const res = await fetch(`${API_URL}/api/google-login`, {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify({
           credential: response.credential,
           mode: "login",
@@ -494,18 +514,11 @@ const Login = () => {
       script.onerror = handleScriptError;
 
       document.head.appendChild(script);
-      createdScript = true;
     }
 
     return () => {
       script?.removeEventListener("load", initializeGoogle);
       script?.removeEventListener("error", handleScriptError);
-
-      // Keep the shared Google script available for other pages.
-      if (createdScript) {
-        script.onload = null;
-        script.onerror = null;
-      }
     };
   }, [handleGoogleCredential]);
 
@@ -522,25 +535,18 @@ const Login = () => {
     setGoogleLoading(true);
     setError("");
 
-    // NOTE: the real credential arrives in the initialize() callback
-    // (handleGoogleCredential). This callback only reports the popup state.
     window.google.accounts.id.prompt((notification) => {
-      // Popup is open: keep waiting
       if (notification.isDisplayed?.()) return;
 
-      // Popup closed
       if (notification.isDismissedMoment?.()) {
-        // A credential was returned: handleGoogleCredential handles it
         if (notification.getDismissedReason?.() === "credential_returned") {
           return;
         }
 
-        // User closed the popup: just stop loading, no error
         setGoogleLoading(false);
         return;
       }
 
-      // Popup could not open or was skipped
       if (
         notification.isNotDisplayed?.() ||
         notification.isSkippedMoment?.()
@@ -559,8 +565,6 @@ const Login = () => {
     <div className="login-wrapper">
       <div className="login-container">
 
-        {/* HEADER */}
-
         <div className="login-header">
           <div className="bgmi-logo">🔐</div>
 
@@ -569,15 +573,11 @@ const Login = () => {
           </h2>
         </div>
 
-        {/* REGISTRATION SUCCESS */}
-
         {showRegisteredMsg && (
           <div className="success-message">
             ✅ Account created successfully! Login now.
           </div>
         )}
-
-        {/* ERROR MESSAGE */}
 
         {error && (
           <div className="error-message">
@@ -585,15 +585,10 @@ const Login = () => {
           </div>
         )}
 
-        {/* LOGIN FORM */}
-
         <form
           onSubmit={handleLogin}
           className="login-form"
         >
-
-          {/* EMAIL */}
-
           <div className="input-group">
             <input
               id="login-email"
@@ -611,8 +606,6 @@ const Login = () => {
             />
           </div>
 
-          {/* PASSWORD */}
-
           <div className="input-group">
             <input
               id="login-password"
@@ -627,15 +620,11 @@ const Login = () => {
             />
           </div>
 
-          {/* FORGOT PASSWORD */}
-
           <div className="forgot-password-link">
             <a href="/forgot-password">
               Forgot Password?
             </a>
           </div>
-
-          {/* LOGIN BUTTON */}
 
           <button
             type="submit"
@@ -644,13 +633,9 @@ const Login = () => {
           >
             {loading ? "Logging In..." : "🚀 Login"}
           </button>
-
         </form>
 
-        {/* GOOGLE LOGIN */}
-
         <div className="google-login-section">
-
           <div className="google-login-divider">
             OR
           </div>
@@ -689,10 +674,7 @@ const Login = () => {
 
             <span>Login With Google</span>
           </button>
-
         </div>
-
-        {/* FOOTER */}
 
         <div className="login-footer">
           <p className="register-link">

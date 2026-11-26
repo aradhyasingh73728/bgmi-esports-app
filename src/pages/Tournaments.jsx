@@ -315,19 +315,12 @@ const Tournaments = () => {
   }, []);
 
   // ==========================================================
-  // INITIAL LOAD + AUTO REFRESH
+  // INITIAL LOAD
+  // AUTO REFRESH REMOVED
   // ==========================================================
 
   useEffect(() => {
     fetchTournaments();
-
-    const interval = setInterval(() => {
-      fetchTournaments();
-    }, 30000);
-
-    return () => {
-      clearInterval(interval);
-    };
   }, [fetchTournaments]);
 
   // ==========================================================
